@@ -1,7 +1,7 @@
 'use client'
 
 import Cookies from 'js-cookie'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { TableToPrint } from './TableToPrint'
 
 interface PDFPrintAreaProps {
@@ -27,7 +27,7 @@ export default function PDFPrintArea({
 	getTeachersName,
 	splitIntoPeriodCards,
 }: PDFPrintAreaProps) {
-	const myGroupId = useMemo(() => Cookies.get('group_id') ?? '-143', [])
+	const myGroupId = Cookies.get('group_id') ?? '-143'
 
 	return (
 		<div

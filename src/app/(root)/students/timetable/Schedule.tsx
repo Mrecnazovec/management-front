@@ -31,7 +31,9 @@ export function Schedule() {
 	const groupId = Cookies.get('group_id') ?? '-143'
 	const id = groupId ?? searchParams.get('id') ?? '-143'
 
-	const groupIds = ['-143', '-144', '-141', '-142']
+	const groupIds = ['-143', '-144', '-141', '-142', 
+		// '-112', '-113'
+	]
 	const { eduPageData, isLoading } = useGetEduPageData()
 	const { timeTables, isLoading: isLoadingTimeTable } = useGetAllEduPageTimeTables(groupIds)
 
@@ -68,7 +70,7 @@ export function Schedule() {
 			setIsGeneratingImages(true)
 			generateTableImages().finally(() => setIsGeneratingImages(false))
 		}
-	}, [tablesToShow, isLoading, isLoadingTimeTable, isMobile])
+	}, [tablesToShow, isLoading, isLoadingTimeTable, isMobile, myGroupId])
 
 	const periods = [
 		{ number: 1, start: '09:00', end: '10:30' },
@@ -84,6 +86,8 @@ export function Schedule() {
 		{ groupName: 'Эк2-23', id: '-144' },
 		{ groupName: 'Эк1-24', id: '-141' },
 		{ groupName: 'Эк2-24', id: '-142' },
+		// { groupName: 'М1-23', id: '-112' },
+		// { groupName: 'М2-23', id: '-113' },
 	]
 
 	const weekDates = useMemo(() => {

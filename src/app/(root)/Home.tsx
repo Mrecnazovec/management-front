@@ -18,7 +18,7 @@ export function Home() {
 			<NumberSection />
 			<HistorySection />
 			<NewsSection />
-			<FormModal />
+			{/* <FormModal /> */}
 		</>
 	)
 }
