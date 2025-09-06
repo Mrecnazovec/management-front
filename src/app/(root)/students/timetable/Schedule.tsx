@@ -28,12 +28,10 @@ const PDFPrintArea = dynamic(() => import('./toPrint/PDFPrintArea'), { ssr: fals
 export function Schedule() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const groupId = Cookies.get('group_id') ?? '-143'
-	const id = groupId ?? searchParams.get('id') ?? '-143'
+	const groupId = Cookies.get('group_id') ?? '-272'
+	const id = groupId ?? searchParams.get('id') ?? '-272'
 
-	const groupIds = ['-143', '-144', '-141', '-142', 
-		// '-112', '-113'
-	]
+	const groupIds = ['-272', '-274', '-270', '-271', '-268', '-269']
 	const { eduPageData, isLoading } = useGetEduPageData()
 	const { timeTables, isLoading: isLoadingTimeTable } = useGetAllEduPageTimeTables(groupIds)
 
@@ -46,7 +44,7 @@ export function Schedule() {
 	const [tableImages, setTableImages] = useState<string[]>([])
 	const [imageLoadedMap, setImageLoadedMap] = useState<Record<number, boolean>>({})
 
-	const myGroupId = Cookies.get('group_id') ?? '-143'
+	const myGroupId = Cookies.get('group_id') ?? '-272'
 
 	useEffect(() => {
 		const match = window.matchMedia('(max-width: 1023px)')
@@ -82,12 +80,12 @@ export function Schedule() {
 
 	const groupSelector = [
 		{ groupName: 'Полное расписание', id: 'all' },
-		{ groupName: 'Эк1-23', id: '-143' },
-		{ groupName: 'Эк2-23', id: '-144' },
-		{ groupName: 'Эк1-24', id: '-141' },
-		{ groupName: 'Эк2-24', id: '-142' },
-		// { groupName: 'М1-23', id: '-112' },
-		// { groupName: 'М2-23', id: '-113' },
+		{ groupName: '1 курс Эк1-25', id: '-268' },
+		{ groupName: '1 курс Эк2-25', id: '-269' },
+		{ groupName: '2 курс Эк1-24', id: '-270' },
+		{ groupName: '2 курс Эк2-24', id: '-271' },
+		{ groupName: '3 курс Эк1-23', id: '-272' },
+		{ groupName: '3 курс Эк2-23', id: '-274' },
 	]
 
 	const weekDates = useMemo(() => {
