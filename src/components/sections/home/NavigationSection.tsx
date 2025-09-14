@@ -1,8 +1,8 @@
-import { Container } from "@/components/ui/Container";
-import { HomeCarousel } from "@/components/ui/home-carousel/HomeCarousel";
-import { PUBLIC_URL } from "@/config/url.config";
-import Image from "next/image";
-import Link from "next/link";
+import { Container } from '@/components/ui/Container'
+import { HomeCarousel } from '@/components/ui/home-carousel/HomeCarousel'
+import { PUBLIC_URL } from '@/config/url.config'
+import Image from 'next/image'
+import Link from 'next/link'
 
 export function NavigationSection() {
 	return (
