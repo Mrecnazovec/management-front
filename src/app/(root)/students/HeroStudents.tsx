@@ -11,7 +11,7 @@ export function HeroStudents() {
 	]
 	return (
 		<AOSComponent>
-			<div className='bg-[url("/png/bgstudents.png")] h-[530px] bg-no-repeat bg-cover bg-center 2xl:container mx-auto mb-15 after:content-[""] relative after:absolute after:w-full after:h-full after:top-0 after:left-0 after:z-0 after:bg-gradient-to-r after:from-main after:to-secondary after:opacity-80 mix-blend-multiply'>
+			<div className='bg-[url("/png/bgstudents.png")] h-[530px] bg-no-repeat bg-cover bg-center 2xl:container mx-auto mb-15 after:content-[""] relative after:absolute after:w-full after:h-full after:top-0 after:left-0 after:z-0 after:bg-gradient-to-r after:from-main after:to-secondary after:opacity-80 mix-blend-multiply overflow-x-hidden'>
 				<Container className='text-white text-center pt-15 z-10 relative'>
 					<p className='mb-4 text-lg' data-aos='fade-up'>
 						Полезная информация
