@@ -14,7 +14,7 @@ const FormModal = dynamic(() => import('@/components/ui/modals/FormModal'))
 export function University() {
 	return (
 		<AOSComponent>
-			<Container>
+			<Container className='overflow-x-hidden'>
 				<h1 className='sr-only'>Университет ТФ МГУ</h1>
 				<div className='flex items-center lg:gap-14 gap-7 mb-8 max-lg:flex-col' data-aos='fade-up'>
 					<Image src={PATH_URL.jpg('university.jpg')} alt='Университет ТФ МГУ' width={500} height={333} className='rounded-2xl' />
