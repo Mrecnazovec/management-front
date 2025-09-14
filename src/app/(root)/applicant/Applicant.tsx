@@ -241,7 +241,7 @@ export function Applicant() {
 						<A href='https://t.me/tf_msu_abiturient'>https://t.me/tf_msu_abiturient</A>
 					</Span>
 				</div>
-				<FormModal />
+				{/* <FormModal /> */}
 			</Container>
 		</AOSComponent>
 	)
