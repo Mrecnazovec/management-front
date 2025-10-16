@@ -5,10 +5,10 @@ import { ThemeModal } from '@/components/ui/modals/ThemeModal'
 
 export function MainLayout({ children }: PropsWithChildren<unknown>) {
 	return (
-		<div className='min-h-screen'>
-			<div className='flex flex-col flex-1'>
+		<div className=''>
+			<div className='flex flex-col min-h-screen'>
 				<Header />
-				<main className='relative h-full'>{children}</main>
+				<main className='relative flex-1'>{children}</main>
 				<ThemeModal />
 				<Footer />
 			</div>
