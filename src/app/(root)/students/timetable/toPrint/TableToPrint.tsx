@@ -1,6 +1,6 @@
+import { TimetableItem } from '@/shared/types/edu-page-timetable.interface'
 import { format, parseISO } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { TimetableItem } from '@/shared/types/edu-page-timetable.interface'
 
 interface ScheduleTableProps {
 	groupName: string
@@ -73,12 +73,12 @@ export function TableToPrint({
 												<div key={idx} className='mb-1 text-center py-4 relative h-full flex items-center justify-center'>
 
 													{getClassName ? (
-														<div className='text-xs mt-1'>
+														<div className='text-3xl font-semibold'>
 															{item.classids.map(getClassName).filter(Boolean).join(', ')}
 														</div>
-													) : <div className='font-semibold text-lg'>{getSubjectName(item.subjectid)}</div>}
-													<div className='text-xs absolute left-0 top-0'>{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}</div>
-													<div className='text-xs italic absolute right-0 bottom-0'>
+													) : <div className='font-semibold text-xl'>{getSubjectName(item.subjectid)}</div>}
+													<div className='text-xl absolute left-0 top-0'>{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}</div>
+													<div className='text-xl italic absolute right-0 bottom-0'>
 														{item.teacherids.map(getTeachersName).filter(Boolean).join(', ')}
 													</div>
 												</div>
