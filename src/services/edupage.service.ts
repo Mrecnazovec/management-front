@@ -21,6 +21,15 @@ class EduPageService {
 
 		return data
 	}
+
+	async getClassRooms(datefrom: string, dateto: string, id: string) {
+		const { data } = await axiosClassic<EduPageTimeTable>({
+			url: API_URL.classrooms(datefrom, dateto, id),
+			method: 'GET',
+		})
+
+		return data
+	}
 }
 
 export const eduPageService = new EduPageService()

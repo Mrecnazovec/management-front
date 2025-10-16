@@ -37,7 +37,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang='ru' className={interSans.variable}>
+		<html lang='ru' suppressHydrationWarning className={interSans.variable}>
 			<head>
 				<meta name='yandex-verification' content='3acc2482785d4638' />
 

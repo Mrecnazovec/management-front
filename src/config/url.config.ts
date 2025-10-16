@@ -10,7 +10,7 @@ export const PUBLIC_URL = {
 	role: (role = '', url = '') => PUBLIC_URL.root(`/${role === 'mentors' ? 'students' : 'university'}/${role}/${url ? url : ''}`),
 	news: (url = '') => PUBLIC_URL.root(`/university/news/${url ? url : ''}`),
 	students: (url = '') => PUBLIC_URL.root(`/students/${url ? url : ''}`),
-	timetable: () => PUBLIC_URL.root(`/students/timetable`),
+	timetable: (url = '') => PUBLIC_URL.root(`/students/timetable/${url ? url : ''}`),
 	subjects: (url = '') => PUBLIC_URL.root(`/students/subjects/${url ? url : ''}`),
 	agreement: (url = '') => PUBLIC_URL.root(`/PDPAgreement/${url ? url : ''}`),
 }

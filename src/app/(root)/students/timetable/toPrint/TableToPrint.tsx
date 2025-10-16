@@ -11,6 +11,8 @@ interface ScheduleTableProps {
 	getClassroomsName: (id: string) => string | null
 	getTeachersName: (id: string) => string | null
 	splitIntoPeriodCards: (item: TimetableItem) => TimetableItem[]
+	getClassName?: (id: string) => string | null
+
 }
 
 export function TableToPrint({
@@ -19,6 +21,7 @@ export function TableToPrint({
 	weekDates,
 	items,
 	getSubjectName,
+	getClassName,
 	getClassroomsName,
 	getTeachersName,
 	splitIntoPeriodCards,
@@ -68,7 +71,12 @@ export function TableToPrint({
 										<td key={period.number} className='border-[3px] px-2 py-1 align-center w-[20%] h-[200px]'>
 											{lessons.map((item, idx) => (
 												<div key={idx} className='mb-1 text-center py-4 relative h-full flex items-center justify-center'>
-													<div className='font-semibold text-lg'>{getSubjectName(item.subjectid)}</div>
+
+													{getClassName ? (
+														<div className='text-xs mt-1'>
+															{item.classids.map(getClassName).filter(Boolean).join(', ')}
+														</div>
+													) : <div className='font-semibold text-lg'>{getSubjectName(item.subjectid)}</div>}
 													<div className='text-xs absolute left-0 top-0'>{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}</div>
 													<div className='text-xs italic absolute right-0 bottom-0'>
 														{item.teacherids.map(getTeachersName).filter(Boolean).join(', ')}

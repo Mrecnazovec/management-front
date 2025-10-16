@@ -11,6 +11,7 @@ interface ScheduleTableProps {
 	weekDates: string[]
 	items: TimetableItem[]
 	getSubjectName: (id: string) => string | null
+	getClassName?: (id: string) => string | null
 	getClassroomsName: (id: string) => string | null
 	getTeachersName: (id: string) => string | null
 	splitIntoPeriodCards: (item: TimetableItem) => TimetableItem[]
@@ -23,6 +24,7 @@ export function ScheduleTable({
 	items,
 	getSubjectName,
 	getClassroomsName,
+	getClassName,
 	getTeachersName,
 	splitIntoPeriodCards,
 }: ScheduleTableProps) {
@@ -70,11 +72,20 @@ export function ScheduleTable({
 									return (
 										<td key={period.number} className='border px-2 py-1 align-center w-[20%] lg:h-[130px] md:h-[200px]'>
 											{lessons.map((item, idx) => (
-												<div key={idx} className='mb-1 text-center py-4 relative h-full flex items-center justify-center'>
-													<div className='font-semibold'>
+												<div key={idx} className='mb-1 text-center py-4 relative h-full flex items-center justify-center flex-col'>
+
+
+													{getClassName ? (
+														<div className='text-xs mt-1'>
+															{item.classids.map(getClassName).filter(Boolean).join(', ')}
+														</div>
+													) : <div className='font-semibold'>
 														<SubjectLink subjectTitleFromSchedule={getSubjectName(item.subjectid)} />
+													</div>}
+
+													<div className='text-xs absolute left-0 top-0'>
+														{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}
 													</div>
-													<div className='text-xs absolute left-0 top-0'>{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}</div>
 													<div className='text-xs italic absolute right-0 bottom-0'>
 														{item.teacherids.map(getTeachersName).filter(Boolean).join(', ')}
 													</div>

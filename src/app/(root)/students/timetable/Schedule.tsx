@@ -22,6 +22,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LoaderSkeleton } from './LoaderSkeleton'
 import { ScheduleTable } from './ScheduleTable'
+import Link from 'next/link'
+import { PUBLIC_URL } from '@/config/url.config'
 
 const PDFPrintArea = dynamic(() => import('./toPrint/PDFPrintArea'), { ssr: false })
 
@@ -45,6 +47,9 @@ export function Schedule() {
 	const [imageLoadedMap, setImageLoadedMap] = useState<Record<number, boolean>>({})
 
 	const myGroupId = Cookies.get('group_id') ?? '-272'
+
+	const groupName =
+		eduPageData?.r.tables.find((t) => t.id === 'classes')?.data_rows.find((r) => r.id === myGroupId)?.name ?? `Группа`
 
 	useEffect(() => {
 		const match = window.matchMedia('(max-width: 1023px)')
@@ -247,7 +252,12 @@ export function Schedule() {
 								))}
 							</SelectContent>
 						</Select>
+						<Link href={PUBLIC_URL.timetable('classrooms')}><Button disabled={isLoading || isLoadingTimeTable} variant='outline' className='text-sm'>
+							Аудитории
+						</Button></Link>
 					</div>
+
+
 
 					{isNotCurrentWeek && (
 						<Button onClick={returnToCurrentWeek} disabled={isLoading || isLoadingTimeTable} variant='main' className='text-sm'>
@@ -317,18 +327,18 @@ export function Schedule() {
 			{/* Mobile расписание */}
 			<div className='block lg:hidden space-y-4 mb-15'>
 				{isGeneratingImages || tableImages.length === 0
-					? Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className='w-full h-[600px]' />)
+					? Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className='w-full h-[300px]' />)
 					: tableImages.map((src, idx) => (
-							<div key={idx} className='relative w-full overflow-hidden rounded-lg'>
-								{!imageLoadedMap[idx] && <Skeleton className='w-full h-[600px]' />}
-								<img
-									src={src}
-									alt={`Расписание ${idx + 1}`}
-									onLoad={() => handleImageLoad(idx)}
-									className={`w-full rounded-lg shadow transition-opacity duration-500 ${imageLoadedMap[idx] ? 'opacity-100' : 'opacity-0'}`}
-								/>
-							</div>
-					  ))}
+						<div key={idx} className='relative w-full overflow-hidden rounded-lg'>
+							{!imageLoadedMap[idx] && <Skeleton className='w-full h-[300px]' />}
+							<img
+								src={src}
+								alt={`Расписание ${idx + 1}`}
+								onLoad={() => handleImageLoad(idx)}
+								className={`w-full rounded-lg shadow transition-opacity duration-500 ${imageLoadedMap[idx] ? 'opacity-100' : 'opacity-0'}`}
+							/>
+						</div>
+					))}
 			</div>
 		</>
 	)
