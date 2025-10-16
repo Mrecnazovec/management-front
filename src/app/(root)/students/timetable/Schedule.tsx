@@ -66,7 +66,7 @@ export function Schedule() {
 	}, [id, timeTables])
 
 	useEffect(() => {
-		if (isMobile && !isLoading && !isLoadingTimeTable && groupName && groupName !== 'Группа') {
+		if (isMobile && !isLoading && !isLoadingTimeTable) {
 			if (isEqual(prevTablesRef.current, tablesToShow)) return
 
 			prevTablesRef.current = tablesToShow
