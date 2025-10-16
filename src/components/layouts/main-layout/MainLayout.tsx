@@ -8,7 +8,7 @@ export function MainLayout({ children }: PropsWithChildren<unknown>) {
 		<div>
 			<div className='flex flex-col min-h-screen'>
 				<Header />
-				<main className='relative flex-1 h-full'>{children}</main>
+				<main className='relative flex-1 h-full min-h-[500px]'>{children}</main>
 				<ThemeModal />
 				<Footer />
 			</div>
