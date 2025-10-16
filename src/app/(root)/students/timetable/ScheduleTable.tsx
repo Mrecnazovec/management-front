@@ -1,8 +1,8 @@
 'use client'
 
+import { TimetableItem } from '@/shared/types/edu-page-timetable.interface'
 import { format, parseISO } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { TimetableItem } from '@/shared/types/edu-page-timetable.interface'
 import { SubjectLink } from './SubjectLink'
 
 interface ScheduleTableProps {
@@ -76,16 +76,16 @@ export function ScheduleTable({
 
 
 													{getClassName ? (
-														<div className='text-xs mt-1'>
+														<div className='text-xl font-semibold'>
 															{item.classids.map(getClassName).filter(Boolean).join(', ')}
 														</div>
 													) : <div className='font-semibold'>
 														<SubjectLink subjectTitleFromSchedule={getSubjectName(item.subjectid)} />
 													</div>}
 
-													<div className='text-xs absolute left-0 top-0'>
+													{!getClassName && <div className='text-xs absolute left-0 top-0'>
 														{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}
-													</div>
+													</div>}
 													<div className='text-xs italic absolute right-0 bottom-0'>
 														{item.teacherids.map(getTeachersName).filter(Boolean).join(', ')}
 													</div>
