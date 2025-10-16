@@ -49,7 +49,7 @@ export function ClassRoomsSchedule() {
 			short: r.short,
 		})) || []
 
-	const savedClassRoomId = Cookies.get('selected_classroom_id') || allClassRooms[0]?.id
+	const savedClassRoomId = Cookies.get('selected_classroom_id') || '-143'
 	const [selectedClassRoomId, setSelectedClassRoomId] = useState(savedClassRoomId)
 	const { classRoom, isLoading: isLoadingClassRoom } = useGetClassRoom(selectedClassRoomId || '-143')
 	const groupName = allClassRooms.find((r) => r.id === selectedClassRoomId)?.short || 'Аудитория'
