@@ -1,22 +1,23 @@
 'use client'
 
 import { Button } from '@/components/ui/Button'
+import { Calendar } from '@/components/ui/Calendar'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Container } from '@/components/ui/Container'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form-element/Form'
 import { ImageUpload } from '@/components/ui/form-element/image-upload/ImageUpload'
-
 import { Input } from '@/components/ui/form-element/Input'
 import { RichTextEditor } from '@/components/ui/form-element/RichEditor/RichTextEditor'
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import { Heading } from '@/components/ui/Heading'
 import { ConfirmModal } from '@/components/ui/modals/ConfirmModal'
 import { useCreateNew } from '@/hooks/queries/news/useCreateNew'
 import { useDeleteNew } from '@/hooks/queries/news/useDeleteNew'
 import { useUpdateNew } from '@/hooks/queries/news/useUpdateNew'
-import { INewForm } from '@/shared/types/new.interface'
 import { INew } from '@/shared/types/new.interface'
-import { Trash } from 'lucide-react'
+import { INewForm } from '@/shared/types/new.interface'
+import { Calendar as CalendarIcon, Trash } from 'lucide-react'
+import { format } from 'date-fns'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -24,16 +25,22 @@ interface NewFormProps {
 	post?: INew | null
 }
 
-const formatDateTimeLocal = (value?: string | Date | null) => {
-	if (!value) return ''
-
+const toDateOrUndefined = (value?: string | Date | null) => {
+	if (!value) return undefined
 	const date = typeof value === 'string' ? new Date(value) : value
-	if (isNaN(date.getTime())) return ''
+	return isNaN(date.getTime()) ? undefined : date
+}
 
-	const offsetMs = date.getTimezoneOffset() * 60 * 1000
-	const localDate = new Date(date.getTime() - offsetMs)
+const mergeDateAndTime = (date: Date, timeSource?: Date) => {
+	const hours = timeSource ? timeSource.getHours() : 0
+	const minutes = timeSource ? timeSource.getMinutes() : 0
+	return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes)
+}
 
-	return localDate.toISOString().slice(0, 16)
+const setTimeOnDate = (timeValue: string, currentDate?: Date) => {
+	const [hours = 0, minutes = 0] = timeValue.split(':').map((value) => Number(value) || 0)
+	const base = currentDate ?? new Date()
+	return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hours, minutes)
 }
 
 export function NewForm({ post }: NewFormProps) {
@@ -54,7 +61,7 @@ export function NewForm({ post }: NewFormProps) {
 			slug: post?.slug || '',
 			title: post?.title || '',
 			isTopNew: post?.isTopNew || false,
-			createdAt: formatDateTimeLocal(post?.createdAt ?? null),
+			createdAt: toDateOrUndefined(post?.createdAt ?? null),
 		},
 	})
 
@@ -66,7 +73,7 @@ export function NewForm({ post }: NewFormProps) {
 				slug: post?.slug || '',
 				title: post?.title || '',
 				isTopNew: post?.isTopNew || false,
-				createdAt: formatDateTimeLocal(post?.createdAt ?? null),
+				createdAt: toDateOrUndefined(post?.createdAt ?? null),
 			})
 		}
 	}, [post, form])
@@ -167,17 +174,34 @@ export function NewForm({ post }: NewFormProps) {
 						control={control}
 						name='createdAt'
 						render={({ field }) => (
-							<FormItem>
+							<FormItem className='space-y-2'>
 								<FormLabel>Дата публикации</FormLabel>
-								<FormControl>
-									<Input
-										{...field}
-										value={field.value ? String(field.value) : ''}
-										type='datetime-local'
-										placeholder='2025-12-06T12:00'
-										disabled={isSubmitting}
-									/>
-								</FormControl>
+								<div className='flex flex-col gap-2 sm:flex-row'>
+									<Popover>
+										<PopoverTrigger asChild>
+											<Button
+												variant='outline'
+												className='w-full justify-start sm:w-[220px]'
+												disabled={isSubmitting}
+											>
+												<CalendarIcon className='mr-2 h-4 w-4' />
+												{field.value ? (
+													format(field.value as Date, 'dd.MM.yyyy')
+												) : (
+													<span className='text-muted-foreground'>Выберите дату</span>
+												)}
+											</Button>
+										</PopoverTrigger>
+										<PopoverContent className='w-auto p-0' align='start'>
+											<Calendar
+												mode='single'
+												selected={field.value ? (field.value as Date) : undefined}
+												onSelect={(date) => field.onChange(date ? mergeDateAndTime(date, field.value as Date | undefined) : undefined)}
+												initialFocus
+											/>
+										</PopoverContent>
+									</Popover>
+								</div>
 								<FormMessage />
 							</FormItem>
 						)}
