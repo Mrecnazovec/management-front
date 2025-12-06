@@ -1,0 +1,15 @@
+.next
+node_modules
+out
+build
+.git
+.gitignore
+.vscode
+*.log
+yarn-error.log*
+npm-debug.log*
+.env*
+.vercel
+coverage
+dist
+*.pem
