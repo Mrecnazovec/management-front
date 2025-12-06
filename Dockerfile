@@ -4,6 +4,13 @@ FROM node:22-bookworm-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
+ARG APP_ENV=production
+ARG APP_URL=http://localhost:3001
+ARG APP_DOMAIN=localhost
+ARG SERVER_URL=http://localhost:4200
+ARG CHAT_ID=0
+ARG TELEGRAM_TOKEN=dummy
+
 FROM base AS deps
 ENV NODE_ENV=development
 COPY package.json yarn.lock ./
@@ -12,6 +19,12 @@ RUN corepack enable \
 
 FROM base AS build
 ENV NODE_ENV=production
+ENV APP_ENV=${APP_ENV}
+ENV APP_URL=${APP_URL}
+ENV APP_DOMAIN=${APP_DOMAIN}
+ENV SERVER_URL=${SERVER_URL}
+ENV CHAT_ID=${CHAT_ID}
+ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable \
@@ -19,6 +32,12 @@ RUN corepack enable \
 
 FROM base AS runner
 ENV NODE_ENV=production
+ENV APP_ENV=${APP_ENV}
+ENV APP_URL=${APP_URL}
+ENV APP_DOMAIN=${APP_DOMAIN}
+ENV SERVER_URL=${SERVER_URL}
+ENV CHAT_ID=${CHAT_ID}
+ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
 COPY package.json yarn.lock ./
 RUN corepack enable \
 	&& yarn install --frozen-lockfile --production=true
