@@ -10,6 +10,7 @@ ARG APP_DOMAIN=localhost
 ARG SERVER_URL=http://localhost:4200
 ARG CHAT_ID=0
 ARG TELEGRAM_TOKEN=dummy
+ARG PORT=3001
 
 FROM base AS deps
 ENV NODE_ENV=development
@@ -25,6 +26,7 @@ ENV APP_DOMAIN=${APP_DOMAIN}
 ENV SERVER_URL=${SERVER_URL}
 ENV CHAT_ID=${CHAT_ID}
 ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+ENV PORT=${PORT}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable \
@@ -38,6 +40,7 @@ ENV APP_DOMAIN=${APP_DOMAIN}
 ENV SERVER_URL=${SERVER_URL}
 ENV CHAT_ID=${CHAT_ID}
 ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+ENV PORT=${PORT}
 COPY package.json yarn.lock ./
 RUN corepack enable \
 	&& yarn install --frozen-lockfile --production=true

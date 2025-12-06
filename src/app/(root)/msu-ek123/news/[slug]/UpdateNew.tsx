@@ -14,7 +14,7 @@ export function UpdateNew() {
 			link: PUBLIC_URL.home(),
 		},
 		{
-			title: 'Админ панель',
+			title: 'Админка',
 			link: ADMIN_URL.home(),
 		},
 		{
@@ -22,7 +22,7 @@ export function UpdateNew() {
 			link: ADMIN_URL.news(),
 		},
 		{
-			title: dataNew?.title || 'Изменение новости',
+			title: dataNew?.title || 'Редактирование новости',
 		},
 	]
 	return (

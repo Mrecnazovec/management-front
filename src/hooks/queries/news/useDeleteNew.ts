@@ -14,7 +14,7 @@ export function useDeleteNew() {
 		mutationKey: ['delete new'],
 		mutationFn: ({ slug }: { slug: string }) => newService.delete(slug),
 		onSuccess(newData) {
-			toast.success('Новость удалёна')
+			toast.success('Новость удалена')
 			queryClient.invalidateQueries({
 				queryKey: ['get all news'],
 			})

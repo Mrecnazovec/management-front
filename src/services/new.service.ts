@@ -34,7 +34,7 @@ class NewService {
 		const { data: createdNew } = await axiosWithAuth<INew>({
 			url: API_URL.news(),
 			method: 'POST',
-			data,
+			data: this.preparePayload(data),
 		})
 
 		return createdNew
@@ -43,7 +43,7 @@ class NewService {
 		const { data: updatedNew } = await axiosWithAuth<INew>({
 			url: API_URL.news(slug),
 			method: 'PUT',
-			data,
+			data: this.preparePayload(data),
 		})
 
 		return updatedNew
@@ -56,6 +56,20 @@ class NewService {
 		})
 
 		return deletedNew
+	}
+
+	private preparePayload(data: INewForm) {
+		const { createdAt, ...rest } = data
+
+		if (!createdAt) return rest
+
+		return {
+			...rest,
+			createdAt:
+				createdAt instanceof Date
+					? createdAt.toISOString()
+					: createdAt,
+		}
 	}
 }
 export const newService = new NewService()

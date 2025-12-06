@@ -18,7 +18,7 @@ export function useUpdateNew() {
 			queryClient.invalidateQueries({
 				queryKey: ['get all news'],
 			})
-			toast.success('Новость обновлёна')
+			toast.success('Новость обновлена')
 			router.push(ADMIN_URL.news())
 		},
 		onError() {

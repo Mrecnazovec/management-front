@@ -24,14 +24,26 @@ interface NewFormProps {
 	post?: INew | null
 }
 
+const formatDateTimeLocal = (value?: string | Date | null) => {
+	if (!value) return ''
+
+	const date = typeof value === 'string' ? new Date(value) : value
+	if (isNaN(date.getTime())) return ''
+
+	const offsetMs = date.getTimezoneOffset() * 60 * 1000
+	const localDate = new Date(date.getTime() - offsetMs)
+
+	return localDate.toISOString().slice(0, 16)
+}
+
 export function NewForm({ post }: NewFormProps) {
 	const { createNew, isLoadingCreate } = useCreateNew()
 	const { updateNew, isLoadingUpdate } = useUpdateNew()
 	const { deleteNew, isLoadingDelete } = useDeleteNew()
 
-	const title = post ? 'Изменить новость' : 'Добавить новость'
-	const description = post ? 'Изменить новость' : 'Добавить нового новость'
-	const action = post ? 'Сохранить' : 'Добавить'
+	const title = post ? 'Редактировать новость' : 'Добавить новость'
+	const description = post ? 'Измените данные новости' : 'Создайте новую новость'
+	const action = post ? 'Сохранить' : 'Создать'
 	const slug = post?.slug || ''
 
 	const form = useForm<INewForm>({
@@ -42,6 +54,7 @@ export function NewForm({ post }: NewFormProps) {
 			slug: post?.slug || '',
 			title: post?.title || '',
 			isTopNew: post?.isTopNew || false,
+			createdAt: formatDateTimeLocal(post?.createdAt ?? null),
 		},
 	})
 
@@ -53,9 +66,10 @@ export function NewForm({ post }: NewFormProps) {
 				slug: post?.slug || '',
 				title: post?.title || '',
 				isTopNew: post?.isTopNew || false,
+				createdAt: formatDateTimeLocal(post?.createdAt ?? null),
 			})
 		}
-	}, [post, form.reset])
+	}, [post, form])
 
 	const {
 		control,
@@ -64,8 +78,13 @@ export function NewForm({ post }: NewFormProps) {
 	} = form
 
 	const onSubmit = (data: INewForm) => {
-		if (post) updateNew({ slug, data })
-		else createNew(data)
+		const payload: INewForm = {
+			...data,
+			createdAt: data.createdAt || undefined,
+		}
+
+		if (post) updateNew({ slug, data: payload })
+		else createNew(payload)
 	}
 
 	return (
@@ -86,10 +105,10 @@ export function NewForm({ post }: NewFormProps) {
 					<FormField
 						control={control}
 						name='preview'
-						rules={{ required: 'Загрузите картинку' }}
+						rules={{ required: 'Загрузите обложку' }}
 						render={({ field }) => (
 							<FormItem className='mt-4'>
-								<FormLabel>Картинка</FormLabel>
+								<FormLabel>Обложка</FormLabel>
 								<FormControl>
 									<ImageUpload
 										isDisabled={isLoadingCreate || isLoadingDelete || isLoadingUpdate}
@@ -105,12 +124,12 @@ export function NewForm({ post }: NewFormProps) {
 					<FormField
 						control={control}
 						name='title'
-						rules={{ required: 'Заголовок обязателен' }}
+						rules={{ required: 'Название обязательно' }}
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Имя</FormLabel>
+								<FormLabel>Название</FormLabel>
 								<FormControl>
-									<Input {...field} placeholder='Заголовок' disabled={isSubmitting} />
+									<Input {...field} placeholder='Название' disabled={isSubmitting} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -122,7 +141,7 @@ export function NewForm({ post }: NewFormProps) {
 						rules={{ required: 'Текст обязателен' }}
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Биография</FormLabel>
+								<FormLabel>Текст</FormLabel>
 								<FormControl>
 									<RichTextEditor value={field.value} onChange={field.onChange} disabled={isSubmitting} />
 								</FormControl>
@@ -136,9 +155,28 @@ export function NewForm({ post }: NewFormProps) {
 						// rules={{ required: 'Slug обязателен' }}
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Имя</FormLabel>
+								<FormLabel>Slug</FormLabel>
 								<FormControl>
 									<Input {...field} placeholder='first-new' disabled={isSubmitting} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={control}
+						name='createdAt'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Дата публикации</FormLabel>
+								<FormControl>
+									<Input
+										{...field}
+										value={field.value ? String(field.value) : ''}
+										type='datetime-local'
+										placeholder='2025-12-06T12:00'
+										disabled={isSubmitting}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
