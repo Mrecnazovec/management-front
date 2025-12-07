@@ -32,7 +32,8 @@ const toDateOrUndefined = (value?: string | Date | null) => {
 }
 
 const mergeDateAndTime = (date: Date, timeSource?: Date) => {
-	const hours = timeSource ? timeSource.getHours() : 0
+	// Keep selected day intact by defaulting time to midday, avoiding timezone shifts that move it to the previous day
+	const hours = timeSource ? timeSource.getHours() : 12
 	const minutes = timeSource ? timeSource.getMinutes() : 0
 	return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes)
 }
