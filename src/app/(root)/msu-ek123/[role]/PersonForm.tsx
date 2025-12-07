@@ -10,7 +10,6 @@ import { RichTextEditor } from '@/components/ui/form-element/RichEditor/RichText
 import { Heading } from '@/components/ui/Heading'
 import { ConfirmModal } from '@/components/ui/modals/ConfirmModal'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
-import { Textarea } from '@/components/ui/Textarea'
 import { useCreatePerson } from '@/hooks/queries/persons/useCreatePerson'
 import { useDeletePerson } from '@/hooks/queries/persons/useDeletePerson'
 import { useUpdatePerson } from '@/hooks/queries/persons/useUpdatePerson'
@@ -348,11 +347,11 @@ export function PersonForm({ person }: PersonFormProps) {
 								<FormLabel>Выбрать предмет</FormLabel>
 								<div className='space-y-2'>
 									{field.value?.map((slug, index) => (
-										<div key={index} className='flex items-center space-x-2'>
+										<div key={index} className='flex flex-wrap items-center gap-2 w-full'>
 											<Popover>
 												<PopoverTrigger asChild>
 													<FormControl>
-														<Button variant='outline' role='combobox' className={cn('w-full justify-between', !slug && 'text-muted-foreground')}>
+														<Button variant='outline' role='combobox' className={cn('flex-1 justify-between', !slug && 'text-muted-foreground')}>
 															{subjectSelector.find((subject) => subject.value === slug)?.label || 'Выберите тип'}
 															<ChevronsUpDown className='opacity-50 ml-2 h-4 w-4' />
 														</Button>
