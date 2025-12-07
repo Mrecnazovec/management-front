@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { EnumTokens } from './services/auth/auth-token.service'
-import { ADMIN_URL, PUBLIC_URL } from './config/url.config'
+import { ADMIN_URL } from './config/url.config'
 
 export async function middleware(request: NextRequest) {
 	const refreshToken = request.cookies.get(EnumTokens.REFRESH_TOKEN)?.value
@@ -16,6 +16,8 @@ export async function middleware(request: NextRequest) {
 	}
 
 	if (refreshToken === undefined) {
+		console.log(`refreshToken: ${refreshToken}`)
+
 		return NextResponse.redirect(new URL(ADMIN_URL.auth(), request.url))
 	}
 

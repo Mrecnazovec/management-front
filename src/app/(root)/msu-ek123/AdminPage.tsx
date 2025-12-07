@@ -13,7 +13,6 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { ADMIN_URL, PATH_URL } from '@/config/url.config'
 import { useLogout } from '@/hooks/useLogout'
 import { useProfile } from '@/hooks/useProfile'
-import Image from 'next/image'
 import Link from 'next/link'
 
 export function AdminPage() {
