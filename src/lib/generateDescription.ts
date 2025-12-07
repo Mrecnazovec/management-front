@@ -1,4 +1,6 @@
-export function stripHtml(html: string): string {
+export function stripHtml(html?: string | null): string {
+	if (!html) return ''
+
 	const plain = html
 		.replace(/<[^>]*>?/gm, '')
 		.replace(/\s+/g, ' ')
