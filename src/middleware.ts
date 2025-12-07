@@ -16,8 +16,6 @@ export async function middleware(request: NextRequest) {
 	}
 
 	if (accessToken === undefined) {
-		console.log(`accessToken: ${accessToken}`)
-
 		return NextResponse.redirect(new URL(ADMIN_URL.auth(), request.url))
 	}
 
