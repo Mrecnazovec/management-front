@@ -7,15 +7,27 @@ import { newService } from '@/services/new.service'
 import { notFound } from 'next/navigation'
 import { stripHtml } from '@/lib/generateDescription'
 
-export async function generateStaticParams() {
-	const posts = await newService.getAll()
+const STUB_SLUG = '__news_stub__'
 
-	return posts.map((post) => ({
-		slug: post.slug,
-	}))
+export async function generateStaticParams() {
+	try {
+		const posts = await newService.getAll()
+
+		if (!posts || posts.length === 0) {
+			return [{ slug: STUB_SLUG }]
+		}
+
+		return posts.map((post) => ({
+			slug: post.slug,
+		}))
+	} catch {
+		return [{ slug: STUB_SLUG }]
+	}
 }
 
 async function getNew(slug: string) {
+	if (slug === STUB_SLUG) return notFound()
+
 	try {
 		return await newService.getBySlug(slug)
 	} catch {

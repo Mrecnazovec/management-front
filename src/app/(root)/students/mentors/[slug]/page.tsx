@@ -11,15 +11,19 @@ import { stripHtml } from '@/lib/generateDescription'
 const STUB_SLUG = '__mentor_stub__'
 
 export async function generateStaticParams() {
-	const persons = await personService.getByRole('mentors')
+	try {
+		const persons = await personService.getByRole('mentors')
 
-	if (!persons || persons.length === 0) {
+		if (!persons || persons.length === 0) {
+			return [{ slug: STUB_SLUG }]
+		}
+
+		return persons.map((person) => ({
+			slug: person.slug,
+		}))
+	} catch {
 		return [{ slug: STUB_SLUG }]
 	}
-
-	return persons.map((person) => ({
-		slug: person.slug,
-	}))
 }
 
 async function getPerson(slug: string) {

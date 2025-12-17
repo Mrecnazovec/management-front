@@ -10,15 +10,19 @@ import { stripHtml } from '@/lib/generateDescription'
 const STUB_SLUG = '__subject_stub__'
 
 export async function generateStaticParams() {
-	const subjects = await subjectService.getAll()
+	try {
+		const subjects = await subjectService.getAll()
 
-	if (!subjects || subjects.length === 0) {
+		if (!subjects || subjects.length === 0) {
+			return [{ slug: STUB_SLUG }]
+		}
+
+		return subjects.map((subject) => ({
+			slug: subject.slug,
+		}))
+	} catch {
 		return [{ slug: STUB_SLUG }]
 	}
-
-	return subjects.map((subject) => ({
-		slug: subject.slug,
-	}))
 }
 
 async function getSubject(slug: string) {
