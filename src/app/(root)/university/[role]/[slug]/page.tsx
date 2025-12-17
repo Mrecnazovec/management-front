@@ -8,20 +8,33 @@ import { roleTitles } from '@/shared/roleTitles'
 import { PersonBioPage } from './PersonBioPage'
 import { stripHtml } from '@/lib/generateDescription'
 
+const STUB_SLUG = '__person_stub__'
+const STUB_ROLE = 'mentors'
+
 export async function generateStaticParams() {
 	const persons = await personService.getAll()
 
+	if (!persons || persons.length === 0) {
+		return [{ role: STUB_ROLE, slug: STUB_SLUG }]
+	}
+
 	const params = persons.flatMap((person) =>
-		person.roles.map((role) => ({
+		(person.roles || []).map((role) => ({
 			role,
 			slug: person.slug,
 		}))
 	)
 
+	if (params.length === 0) {
+		return [{ role: STUB_ROLE, slug: STUB_SLUG }]
+	}
+
 	return params
 }
 
 async function getPerson(slug: string) {
+	if (slug === STUB_SLUG) return notFound()
+
 	try {
 		return await personService.getOne(slug)
 	} catch {
