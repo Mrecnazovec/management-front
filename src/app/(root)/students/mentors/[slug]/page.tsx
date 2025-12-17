@@ -8,8 +8,14 @@ import { roleTitles } from '@/shared/roleTitles'
 import { PersonBioPage } from './PersonBioPage'
 import { stripHtml } from '@/lib/generateDescription'
 
+const STUB_SLUG = '__mentor_stub__'
+
 export async function generateStaticParams() {
 	const persons = await personService.getByRole('mentors')
+
+	if (!persons || persons.length === 0) {
+		return [{ slug: STUB_SLUG }]
+	}
 
 	return persons.map((person) => ({
 		slug: person.slug,
@@ -17,6 +23,8 @@ export async function generateStaticParams() {
 }
 
 async function getPerson(slug: string) {
+	if (slug === STUB_SLUG) return notFound()
+
 	try {
 		return await personService.getOne(slug)
 	} catch {
