@@ -7,8 +7,14 @@ import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { stripHtml } from '@/lib/generateDescription'
 
+const STUB_SLUG = '__subject_stub__'
+
 export async function generateStaticParams() {
 	const subjects = await subjectService.getAll()
+
+	if (!subjects || subjects.length === 0) {
+		return [{ slug: STUB_SLUG }]
+	}
 
 	return subjects.map((subject) => ({
 		slug: subject.slug,
@@ -16,6 +22,8 @@ export async function generateStaticParams() {
 }
 
 async function getSubject(slug: string) {
+	if (slug === STUB_SLUG) return notFound()
+
 	try {
 		return await subjectService.getOne(slug)
 	} catch {
