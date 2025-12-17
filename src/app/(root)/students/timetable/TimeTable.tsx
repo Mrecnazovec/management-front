@@ -16,9 +16,6 @@ import { Button } from '@/components/ui/Button'
 import { Calendar } from '@/components/ui/Calendar'
 import { ArrowLeft, ArrowRight, Calendar1, FileDown, MonitorX } from 'lucide-react'
 
-import jsPDF from 'jspdf'
-import domtoimage from 'dom-to-image'
-
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 import { LoaderSkeleton } from './LoaderSkeleton'
@@ -67,6 +64,9 @@ export function TimeTable() {
 		const targetRow = classesSection?.data_rows?.find((row) => row.id === id)
 		return targetRow?.name ?? null
 	}, [eduPageData, id])
+
+	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+	const [renderPrintable, setRenderPrintable] = useState(false)
 
 	const weekDates = useMemo(() => {
 		const days = []
@@ -146,52 +146,69 @@ export function TimeTable() {
 
 		router.push(`?${params.toString()}`)
 	}
-
 	const handleDownloadPDF = async () => {
-		const { toast } = await import('react-hot-toast')
-		toast.success('Началась конвертация')
-		const element = document.getElementById('timetable')
-		if (!element) return
-
-		try {
-			const dataUrl = await domtoimage.toPng(element, {
-				cacheBust: true,
-				bgcolor: '#ffffff',
-			})
-
-			const pdf = new jsPDF({
-				orientation: 'landscape',
-				unit: 'pt',
-				format: 'a4',
-			})
-
-			const pdfWidth = pdf.internal.pageSize.getWidth()
-			const pdfHeight = pdf.internal.pageSize.getHeight()
-
-			const img = new Image()
-			img.src = dataUrl
-			img.onload = () => {
-				const imgWidth = img.width
-				const imgHeight = img.height
-
-				const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-
-				const finalWidth = imgWidth * ratio
-				const finalHeight = imgHeight * ratio
-
-				const x = (pdfWidth - finalWidth) / 2
-				const y = (pdfHeight - finalHeight) / 2
-
-				pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight)
-				pdf.save(`Расписание_${classShortName}_${eduPageTimeTable?.r.week_name}.pdf`)
-				toast.success('Начинается загрузка')
-			}
-		} catch (err) {
-			toast.error('Ошибка при конвертации')
-		}
+	if (isGeneratingPdf) return
+	const { toast } = await import('react-hot-toast')
+	toast.success('Расписание готовится')
+	setIsGeneratingPdf(true)
+	setRenderPrintable(true)
+	await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+	const element = document.getElementById('timetable-printable')
+	if (!element) {
+		toast.error('Не удалось подготовить расписание')
+		setIsGeneratingPdf(false)
+		setRenderPrintable(false)
+		return
 	}
 
-	const scheduleGrid = useMemo(() => {
+	try {
+		const domtoimageModule = (await import('dom-to-image')) as any
+		const toPng = domtoimageModule.toPng ?? domtoimageModule.default?.toPng
+		if (!toPng) throw new Error('dom-to-image toPng not found')
+
+		const dataUrl = await toPng(element, {
+			cacheBust: true,
+			bgcolor: '#ffffff',
+		})
+
+		const { default: jsPDF } = await import('jspdf')
+		const pdf = new jsPDF({
+			orientation: 'landscape',
+			unit: 'pt',
+			format: 'a4',
+		})
+
+		const pdfWidth = pdf.internal.pageSize.getWidth()
+		const pdfHeight = pdf.internal.pageSize.getHeight()
+
+		const img = new Image()
+		img.src = dataUrl
+		img.onload = () => {
+			const imgWidth = img.width
+			const imgHeight = img.height
+
+			const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+
+			const finalWidth = imgWidth * ratio
+			const finalHeight = imgHeight * ratio
+
+			const x = (pdfWidth - finalWidth) / 2
+			const y = (pdfHeight - finalHeight) / 2
+
+			const fileName = '????????????????????_' + (classShortName ?? '') + '_' + (eduPageTimeTable?.r.week_name ?? '') + '.pdf'
+			pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight)
+			pdf.save(fileName)
+			toast.success('PDF сохранён')
+		}
+	} catch (err) {
+		toast.error('?? ??????? ???????????? PDF')
+	} finally {
+		setIsGeneratingPdf(false)
+		setRenderPrintable(false)
+	}
+}
+
+const scheduleGrid = useMemo(() => {
 		if (!eduPageTimeTable?.r?.ttitems) return {}
 
 		const items = eduPageTimeTable.r.ttitems.filter((item) => item.classids.includes(id))
@@ -230,7 +247,13 @@ export function TimeTable() {
 							</SelectContent>
 						</Select>
 					</div>
-					<Button onClick={handleDownloadPDF} disabled={isLoadingTimeTable} size='sm' variant='outline' className='gap-2'>
+					<Button
+						onClick={handleDownloadPDF}
+						disabled={isLoadingTimeTable || isGeneratingPdf}
+						size='sm'
+						variant='outline'
+						className='gap-2'
+					>
 						<FileDown className='w-4 h-4' />
 						Скачать PDF (формат Сплетен)
 					</Button>
@@ -375,28 +398,27 @@ export function TimeTable() {
 							)
 						})}
 					</div>
-					<div
-						style={{
-							position: 'absolute',
-							top: '-9999px',
-							left: '-9999px',
-							width: '1920px',
-							height: '1080px',
-							padding: '16px',
-						}}
-					>
-						<PrintableSchedule
-							id='timetable'
-							groupName={groupName}
-							weekDates={weekDates}
-							periods={periods}
-							scheduleGrid={scheduleGrid}
-							getSubjectName={getSubjectName}
-							getClassroomsName={getClassroomsName}
-							getTeachersName={getTeachersName}
-						/>
-					</div>
-					{/* opacity-0 absolute -z-50 translate-x-[-100%] translate-y-[-100%] */}
+					{renderPrintable && (
+						<div
+							style={{
+								position: 'absolute',
+								top: '-9999px',
+								left: '-9999px',
+								padding: '16px',
+							}}
+						>
+							<PrintableSchedule
+								id='timetable-printable'
+								groupName={groupName}
+								weekDates={weekDates}
+								periods={periods}
+								scheduleGrid={scheduleGrid}
+								getSubjectName={getSubjectName}
+								getClassroomsName={getClassroomsName}
+								getTeachersName={getTeachersName}
+							/>
+						</div>
+					)}
 				</>
 			)}
 		</Container>

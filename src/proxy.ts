@@ -2,9 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { EnumTokens } from './services/auth/auth-token.service'
 import { ADMIN_URL } from './config/url.config'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const accessToken = request.cookies.get(EnumTokens.ACCESS_TOKEN)?.value
-
 	const isAuthPage = request.url.includes(ADMIN_URL.auth())
 
 	if (isAuthPage) {

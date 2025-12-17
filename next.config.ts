@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+	// Enable Cache Components (Next.js 16) to cache server component trees and support partial prerendering
+	cacheComponents: true,
 	env: {
 		APP_ENV: process.env.APP_ENV,
 		APP_URL: process.env.APP_URL,

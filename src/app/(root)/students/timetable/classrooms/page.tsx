@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { Suspense } from 'react'
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
 	...NO_INDEX_PAGE
 }
 
-export const revalidate = 60
-
-export default function Page() {
+export default async function Page() {
+	'use cache'
+	cacheLife({ revalidate: 60 })
 	const navigation = [
 		{
 			title: 'Главная',

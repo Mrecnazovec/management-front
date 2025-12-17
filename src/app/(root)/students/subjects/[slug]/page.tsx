@@ -1,12 +1,11 @@
 import { subjectService } from '@/services/subject.service'
 import { Metadata, ResolvingMetadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { SubjectPage } from './SubjectPage'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { stripHtml } from '@/lib/generateDescription'
-
-export const revalidate = 60
 
 export async function generateStaticParams() {
 	const subjects = await subjectService.getAll()
@@ -29,6 +28,9 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	const subject = await getSubject((await params).slug)
 
 	return {
@@ -38,6 +40,9 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 }
 
 export default async function Page({ params }: Props) {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	const subject = await getSubject((await params).slug)
 
 	if (!subject) return notFound()

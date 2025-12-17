@@ -1,10 +1,8 @@
 import { Metadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { NewsPage } from './News'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
-
-export const revalidate = 60
-
 export const metadata: Metadata = {
 	title: 'Новости',
 	description:
@@ -26,7 +24,10 @@ const navigation = [
 	},
 ]
 
-export default function page() {
+export default async function page() {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	return (
 		<>
 			<Bread navigation={navigation} />

@@ -1,4 +1,5 @@
 import type { Metadata, ResolvingMetadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { roleDescription, roleTitles } from '@/shared/roleTitles'
@@ -21,10 +22,10 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 		description: roleDescription[role] || '',
 	}
 }
-
-export const revalidate = 60
-
 export default async function Page({ params }: Props) {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	const role = (await params).role
 
 	const navigation = [

@@ -1,13 +1,12 @@
 import { personService } from '@/services/person.service'
 import { Metadata, ResolvingMetadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { roleTitles } from '@/shared/roleTitles'
 import { PersonBioPage } from './PersonBioPage'
 import { stripHtml } from '@/lib/generateDescription'
-
-export const revalidate = 60
 
 export async function generateStaticParams() {
 	const persons = await personService.getByRole('mentors')
@@ -30,6 +29,9 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	const person = await getPerson((await params).slug)
 
 	return {
@@ -39,6 +41,9 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 }
 
 export default async function Page({ params }: Props) {
+	'use cache'
+	cacheLife({ revalidate: 60 })
+
 	const person = await getPerson((await params).slug)
 	const role = 'mentors'
 

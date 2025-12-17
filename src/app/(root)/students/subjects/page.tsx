@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { Plan } from './Plan'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
@@ -8,10 +9,10 @@ export const metadata: Metadata = {
 	description:
 		'Актуальный учебный план для студентов направления «Менеджмент» Ташкентского филиала МГУ. Ознакомьтесь со структурой курса и дисциплинами по семестрам.',
 }
+export default async function page() {
+	'use cache'
+	cacheLife({ revalidate: 60 })
 
-export const revalidate = 60
-
-export default function page() {
 	const navigation = [
 		{
 			title: 'Главная',

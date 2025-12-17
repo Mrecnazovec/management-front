@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cacheLife } from 'next/cache'
 import { TimeTable } from './TimeTable'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
@@ -21,9 +22,9 @@ export const metadata: Metadata = {
 	],
 }
 
-export const revalidate = 60
-
-export default function Page() {
+export default async function Page() {
+	'use cache'
+	cacheLife({ revalidate: 60 })
 	const navigation = [
 		{
 			title: 'Главная',

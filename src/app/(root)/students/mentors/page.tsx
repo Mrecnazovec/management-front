@@ -2,6 +2,7 @@ import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { PUBLIC_URL } from '@/config/url.config'
 import type { Metadata } from 'next'
 import { MentorsPage } from './MentorsPage'
+import { cacheLife } from 'next/cache'
 
 export const metadata: Metadata = {
 	title: 'Менторы',
@@ -9,9 +10,10 @@ export const metadata: Metadata = {
 		'Менторы Ташкентского филиала МГУ — это старшие студенты, готовые поддержать первокурсников в адаптации к учебе, поделиться опытом и помочь освоиться в университетской среде. Узнайте больше о наших менторах и их роли в жизни студентов.',
 }
 
-export const revalidate = 60
+export default async function Page() {
+	'use cache'
+	cacheLife({ revalidate: 60 })
 
-export default function Page() {
 	const navigation = [
 		{
 			title: 'Главная',
