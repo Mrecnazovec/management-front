@@ -1,5 +1,5 @@
 import { subjectService } from '@/services/subject.service'
-import { Metadata, ResolvingMetadata } from 'next'
+import { Metadata } from 'next'
 import { cacheLife } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { SubjectPage } from './SubjectPage'
@@ -39,10 +39,7 @@ type Props = {
 	params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
-	'use cache'
-	cacheLife({ revalidate: 60 })
-
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const subject = await getSubject((await params).slug)
 
 	return {
