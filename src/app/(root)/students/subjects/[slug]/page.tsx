@@ -1,6 +1,6 @@
 import { subjectService } from '@/services/subject.service'
 import { Metadata } from 'next'
-import { cacheLife, unstable_cache } from 'next/cache'
+import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { SubjectPage } from './SubjectPage'
 import { PUBLIC_URL } from '@/config/url.config'
@@ -24,6 +24,19 @@ const getSubjectForMetadata = unstable_cache(
 	{ revalidate: 60 }
 )
 
+const getSubjectCached = unstable_cache(
+	async (slug: string) => {
+		const { data } = await axiosClassic({
+			url: API_URL.subjects(slug),
+			method: 'GET',
+		})
+
+		return data
+	},
+	['subject-page'],
+	{ revalidate: 60 }
+)
+
 export async function generateStaticParams() {
 	try {
 		const subjects = await subjectService.getAll()
@@ -44,7 +57,7 @@ async function getSubject(slug: string) {
 	if (slug === STUB_SLUG) return notFound()
 
 	try {
-		return await subjectService.getOne(slug)
+		return await getSubjectCached(slug)
 	} catch {
 		notFound()
 	}
@@ -66,9 +79,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-	'use cache'
-	cacheLife({ revalidate: 60 })
-
 	const subject = await getSubject((await params).slug)
 
 	if (!subject) return notFound()
