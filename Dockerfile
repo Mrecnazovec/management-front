@@ -14,9 +14,8 @@ ARG PORT=3001
 
 FROM base AS deps
 ENV NODE_ENV=development
-COPY package.json yarn.lock ./
-RUN corepack enable \
-	&& yarn install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 
 FROM base AS build
 ENV NODE_ENV=production
@@ -29,8 +28,7 @@ ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
 ENV PORT=${PORT}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN corepack enable \
-	&& yarn build
+RUN npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
@@ -41,11 +39,10 @@ ENV SERVER_URL=${SERVER_URL}
 ENV CHAT_ID=${CHAT_ID}
 ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
 ENV PORT=${PORT}
-COPY package.json yarn.lock ./
-RUN corepack enable \
-	&& yarn install --frozen-lockfile --production=true
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY next.config.ts ./next.config.ts
 EXPOSE 3001
-CMD ["yarn", "start"]
+CMD ["npm", "start"]
