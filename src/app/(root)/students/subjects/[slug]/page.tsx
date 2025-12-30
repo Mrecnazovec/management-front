@@ -1,13 +1,28 @@
 import { subjectService } from '@/services/subject.service'
 import { Metadata } from 'next'
-import { cacheLife } from 'next/cache'
+import { cacheLife, unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { SubjectPage } from './SubjectPage'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { stripHtml } from '@/lib/generateDescription'
+import { API_URL } from '@/config/api.config'
+import { axiosClassic } from '@/api/api.interceptors'
 
 const STUB_SLUG = '__subject_stub__'
+
+const getSubjectForMetadata = unstable_cache(
+	async (slug: string) => {
+		const { data } = await axiosClassic({
+			url: API_URL.subjects(slug),
+			method: 'GET',
+		})
+
+		return data
+	},
+	['subject-metadata'],
+	{ revalidate: 60 }
+)
 
 export async function generateStaticParams() {
 	try {
@@ -40,7 +55,9 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-	const subject = await getSubject((await params).slug)
+	const slug = (await params).slug
+
+	const subject = await getSubjectForMetadata(slug)
 
 	return {
 		title: subject.title,
