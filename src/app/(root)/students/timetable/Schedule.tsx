@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Button } from '@/components/ui/Button'
 import { Calendar } from '@/components/ui/Calendar'
@@ -6,26 +6,24 @@ import { Container } from '@/components/ui/Container'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { PUBLIC_URL } from '@/config/url.config'
 import { useGetAllEduPageTimeTables } from '@/hooks/queries/edu-page/useGetAllEduPageTimeTables'
 import { useGetEduPageData } from '@/hooks/queries/edu-page/useGetEduPageData'
+import { useGetEduPageTimetableImages } from '@/hooks/queries/edu-page/useGetEduPageTimetableImages'
 import { getEndOfWeek, getStartOfWeek } from '@/lib/eduPageGetDate'
-import { generatePdfFromDom } from '@/lib/pdf-generator'
+import { generatePdfFromImageUrls } from '@/lib/pdf-generator'
+import { eduPageService } from '@/services/edupage.service'
 import { TimetableItem } from '@/shared/types/edu-page-timetable.interface'
 import { addDays, areIntervalsOverlapping, endOfWeek, format, formatISO, parse, parseISO, startOfWeek } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import domtoimage from 'dom-to-image'
 import Cookies from 'js-cookie'
 import { isEqual } from 'lodash'
 import { ArrowLeft, ArrowRight, Calendar1, FileDown } from 'lucide-react'
-import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LoaderSkeleton } from './LoaderSkeleton'
 import { ScheduleTable } from './ScheduleTable'
-import Link from 'next/link'
-import { PUBLIC_URL } from '@/config/url.config'
-
-const PDFPrintArea = dynamic(() => import('./toPrint/PDFPrintArea'), { ssr: false })
 
 export function Schedule() {
 	const router = useRouter()
@@ -34,29 +32,39 @@ export function Schedule() {
 	const id = groupId ?? searchParams.get('id') ?? '-272'
 
 	const groupIds = ['-272', '-274', '-270', '-271', '-268', '-269']
-	const { eduPageData, isLoading } = useGetEduPageData()
-	const { timeTables, isLoading: isLoadingTimeTable } = useGetAllEduPageTimeTables(groupIds)
+	const [isMobile, setIsMobile] = useState<boolean | null>(null)
+	const shouldLoadImages = isMobile === true
+	const shouldLoadTables = isMobile === false
+	const { eduPageData, isLoading } = useGetEduPageData(shouldLoadTables)
+	const { timeTables, isLoading: isLoadingTimeTable } = useGetAllEduPageTimeTables(groupIds, shouldLoadTables)
 
 	const currentFrom = parseISO(searchParams.get('datefrom') ?? getStartOfWeek())
 	const currentTo = parseISO(searchParams.get('dateto') ?? getEndOfWeek())
 	const [calendarDate, setCalendarDate] = useState<Date | undefined>(currentFrom)
-
-	const [isMobile, setIsMobile] = useState(false)
-	const [isGeneratingImages, setIsGeneratingImages] = useState(true)
-	const [tableImages, setTableImages] = useState<string[]>([])
 	const [imageLoadedMap, setImageLoadedMap] = useState<Record<number, boolean>>({})
+	const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
 
 	const myGroupId = Cookies.get('group_id') ?? '-272'
 
-	const groupName =
-		eduPageData?.r.tables.find((t) => t.id === 'classes')?.data_rows.find((r) => r.id === myGroupId)?.name ?? `Группа`
-
 	useEffect(() => {
 		const match = window.matchMedia('(max-width: 1023px)')
+		const handleChange = (event: MediaQueryListEvent) => {
+			setIsMobile(event.matches)
+		}
 		setIsMobile(match.matches)
+		if (match.addEventListener) {
+			match.addEventListener('change', handleChange)
+		} else {
+			match.addListener(handleChange)
+		}
+		return () => {
+			if (match.removeEventListener) {
+				match.removeEventListener('change', handleChange)
+			} else {
+				match.removeListener(handleChange)
+			}
+		}
 	}, [])
-
-	const prevTablesRef = useRef<any[]>([])
 
 	const tablesToShow = useMemo(() => {
 		if (id === 'all') return timeTables
@@ -65,15 +73,18 @@ export function Schedule() {
 		return [timeTables[index]]
 	}, [id, timeTables])
 
-	useEffect(() => {
-		if (isMobile && !isLoading && !isLoadingTimeTable) {
-			if (isEqual(prevTablesRef.current, tablesToShow)) return
+	const selectedIds = useMemo(() => {
+		if (id === 'all') return groupIds
+		return groupIds.includes(id) ? [id] : []
+	}, [id, groupIds])
 
-			prevTablesRef.current = tablesToShow
-			setIsGeneratingImages(true)
-			generateTableImages().finally(() => setIsGeneratingImages(false))
-		}
-	}, [tablesToShow, isLoading, isLoadingTimeTable, isMobile, myGroupId])
+	const { images: tableImages, isLoading: isLoadingImages } = useGetEduPageTimetableImages(selectedIds, shouldLoadImages)
+	const imageUrls = useMemo(() => tableImages.map((image) => image.url), [tableImages])
+	const imageUrlsKey = useMemo(() => imageUrls.join('|'), [imageUrls])
+
+	useEffect(() => {
+		setImageLoadedMap({})
+	}, [imageUrlsKey])
 
 	const periods = [
 		{ number: 1, start: '09:00', end: '10:30' },
@@ -106,42 +117,32 @@ export function Schedule() {
 
 	const handleDownloadPDF = async () => {
 		const { toast } = await import('react-hot-toast')
-		const container = document.getElementById('pdf-print-area')
-		if (!container) return toast.error('Не найден контейнер для печати')
-
-		await generatePdfFromDom(container, `Расписание_${format(currentFrom, 'dd.MM')}.pdf`)
-	}
-
-	const generateTableImages = async () => {
-		const container = document.getElementById('pdf-print-area')
-		if (!container) return
-
-		const children = Array.from(container.children)
-		if (!children.length) return
-
-		const images: string[] = []
-
-		for (let i = 0; i < children.length; i++) {
-			const node = children[i] as HTMLElement
-			try {
-				const dataUrl = await domtoimage.toPng(node, { cacheBust: true, bgcolor: '#ffffff' })
-				images.push(dataUrl)
-			} catch (error) {
-				console.error('Ошибка при генерации изображения таблицы:', error)
-			}
+		toast.success('Начинается конвертация')
+		if (isDownloadingPdf) return
+		if (selectedIds.length === 0) {
+			return toast.error('Выберите группу для скачивания')
 		}
-
-		setTableImages(images)
+		setIsDownloadingPdf(true)
+		try {
+			const dateFrom = formatISO(currentFrom, { representation: 'date' })
+			const dateTo = formatISO(currentTo, { representation: 'date' })
+			const { images } = await eduPageService.getTimetableImagesData(dateFrom, dateTo, selectedIds)
+			const imageMap = new Map(images.map((image) => [image.id, image.dataUrl]))
+			const urls = selectedIds.map((id) => imageMap.get(id)).filter((url): url is string => Boolean(url))
+			if (urls.length === 0) {
+				return toast.error('Не удалось получить изображения расписания')
+			}
+			await generatePdfFromImageUrls(urls, `Расписание_${format(currentFrom, 'dd.MM')}.pdf`)
+		} catch (error) {
+			toast.error('Не удалось скачать PDF')
+		} finally {
+			setIsDownloadingPdf(false)
+		}
 	}
+
 
 	const handleImageLoad = (index: number) => {
-		setImageLoadedMap((prev) => {
-			const updated = { ...prev, [index]: true }
-			if (Object.keys(updated).length === tableImages.length && Object.values(updated).every(Boolean)) {
-				setIsGeneratingImages(false)
-			}
-			return updated
-		})
+		setImageLoadedMap((prev) => ({ ...prev, [index]: true }))
 	}
 
 	const isNotCurrentWeek = useMemo(() => {
@@ -155,8 +156,6 @@ export function Schedule() {
 		params.set('datefrom', formatISO(from, { representation: 'date' }))
 		params.set('dateto', formatISO(to, { representation: 'date' }))
 		if (isMobile) {
-			setIsGeneratingImages(true)
-			setTableImages([])
 			setImageLoadedMap({})
 		}
 		setCalendarDate(from)
@@ -171,8 +170,6 @@ export function Schedule() {
 		params.set('datefrom', formatISO(newFrom, { representation: 'date' }))
 		params.set('dateto', formatISO(newTo, { representation: 'date' }))
 		if (isMobile) {
-			setIsGeneratingImages(true)
-			setTableImages([])
 			setImageLoadedMap({})
 		}
 		setCalendarDate(newFrom)
@@ -187,8 +184,6 @@ export function Schedule() {
 		params.set('datefrom', formatISO(newFrom, { representation: 'date' }))
 		params.set('dateto', formatISO(newTo, { representation: 'date' }))
 		if (isMobile) {
-			setIsGeneratingImages(true)
-			setTableImages([])
 			setImageLoadedMap({})
 		}
 		setCalendarDate(date)
@@ -237,7 +232,7 @@ export function Schedule() {
 				{/* Header */}
 				<div className='flex flex-wrap items-center lg:flex-row flex-col lg:justify-between justify-center gap-4 mb-4'>
 					<div className='flex gap-2 xs:flex-row flex-col justify-center items-center'>
-						<Button onClick={handleDownloadPDF} disabled={isLoadingTimeTable} variant='outline' className='gap-2'>
+						<Button onClick={handleDownloadPDF} variant='outline' className='gap-2'>
 							<FileDown className='w-4 h-4' /> Скачать PDF
 						</Button>
 						<Select disabled={isLoading || isLoadingTimeTable} value={id} onValueChange={handleGroupChange}>
@@ -284,62 +279,50 @@ export function Schedule() {
 						</Button>
 					</div>
 				</div>
-
 				{/* Desktop schedule */}
-				{isLoading || isLoadingTimeTable ? (
-					<LoaderSkeleton />
-				) : (
-					tablesToShow.map((tableData, index) => {
-						const items = tableData?.r.ttitems ?? []
-						const classId = myGroupId !== 'all' ? myGroupId : groupIds[index]
-						const groupName =
-							eduPageData?.r.tables.find((t) => t.id === 'classes')?.data_rows.find((r) => r.id === classId)?.name ?? `Группа ${classId}`
-						return (
-							<ScheduleTable
-								key={index}
-								groupName={groupName}
-								periods={periods}
-								weekDates={weekDates}
-								items={items}
-								getSubjectName={getSubjectName}
-								getClassroomsName={getClassroomsName}
-								getTeachersName={getTeachersName}
-								splitIntoPeriodCards={splitIntoPeriodCards}
-							/>
-						)
-					})
-				)}
-
-				{/* Hidden printable area for PDF */}
-				<PDFPrintArea
-					tablesToShow={tablesToShow}
-					groupIds={groupIds}
-					eduPageData={eduPageData}
-					periods={periods}
-					weekDates={weekDates}
-					getSubjectName={getSubjectName}
-					getClassroomsName={getClassroomsName}
-					getTeachersName={getTeachersName}
-					splitIntoPeriodCards={splitIntoPeriodCards}
-				/>
-			</Container>
-
-			{/* Mobile расписание */}
-			<div className='block lg:hidden space-y-4 mb-15'>
-				{isGeneratingImages || tableImages.length === 0
-					? Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className='w-full h-[300px]' />)
-					: tableImages.map((src, idx) => (
-						<div key={idx} className='relative w-full overflow-hidden rounded-lg'>
-							{!imageLoadedMap[idx] && <Skeleton className='w-full h-[300px]' />}
-							<img
-								src={src}
-								alt={`Расписание ${idx + 1}`}
-								onLoad={() => handleImageLoad(idx)}
-								className={`w-full rounded-lg shadow transition-opacity duration-500 ${imageLoadedMap[idx] ? 'opacity-100' : 'opacity-0'}`}
-							/>
-						</div>
+				{shouldLoadTables &&
+					(isLoading || isLoadingTimeTable ? (
+						<LoaderSkeleton />
+					) : (
+						tablesToShow.map((tableData, index) => {
+							const items = tableData?.r.ttitems ?? []
+							const classId = myGroupId !== 'all' ? myGroupId : groupIds[index]
+							const groupName =
+								eduPageData?.r.tables.find((t) => t.id === 'classes')?.data_rows.find((r) => r.id === classId)?.name ?? `Группа ${classId}`
+							return (
+								<ScheduleTable
+									key={index}
+									groupName={groupName}
+									periods={periods}
+									weekDates={weekDates}
+									items={items}
+									getSubjectName={getSubjectName}
+									getClassroomsName={getClassroomsName}
+									getTeachersName={getTeachersName}
+									splitIntoPeriodCards={splitIntoPeriodCards}
+								/>
+							)
+						})
 					))}
-			</div>
+			</Container>
+			{/* Mobile расписание */}
+			{shouldLoadImages && (
+				<div className='block lg:hidden space-y-4 mb-15'>
+					{isLoadingImages || imageUrls.length === 0
+						? Array.from({ length: 4 }).map((_, idx) => <Skeleton key={idx} className='w-full h-[300px]' />)
+						: imageUrls.map((src, idx) => (
+							<div key={idx} className='relative w-full overflow-hidden'>
+								{!imageLoadedMap[idx] && <Skeleton className='w-full h-[300px]' />}
+								<img
+									src={src}
+									alt={`Расписание ${idx + 1}`}
+									onLoad={() => handleImageLoad(idx)}
+									className={`w-full shadow transition-opacity duration-500 ${imageLoadedMap[idx] ? 'opacity-100' : 'opacity-0'}`}
+								/>
+							</div>
+						))}
+				</div>
+			)}
 		</>
 	)
 }

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-export const useGetEduPageData = () => {
+export const useGetEduPageData = (enabled = true) => {
 	const searchParams = useSearchParams()
 	const datefrom = searchParams.get('datefrom') ?? getStartOfWeek()
 	const dateto = searchParams.get('dateto') ?? getEndOfWeek()
@@ -14,6 +14,7 @@ export const useGetEduPageData = () => {
 		queryFn: () => {
 			return eduPageService.getDataBase(datefrom, dateto)
 		},
+		enabled,
 	})
 
 	return useMemo(

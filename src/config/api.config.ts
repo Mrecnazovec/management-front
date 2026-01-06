@@ -15,6 +15,12 @@ export const API_URL = {
 	fetch: (datefrom = '', dateto = '') => API_URL.root(`/edupage/fetch?datefrom=${datefrom}&dateto=${dateto}`),
 	timetable: (datefrom = '', dateto = '', id = '') => API_URL.root(`/edupage/timetable?datefrom=${datefrom}&dateto=${dateto}&id=${id}`),
 	classrooms: (datefrom = '', dateto = '', id = '') => API_URL.root(`/edupage/classrooms?datefrom=${datefrom}&dateto=${dateto}&id=${id}`),
+	timetableImage: (datefrom = '', dateto = '', id = '') =>
+		API_URL.root(`/edupage/timetable-image?datefrom=${datefrom}&dateto=${dateto}&id=${id}`),
+	timetableImages: (datefrom = '', dateto = '', ids = '') =>
+		API_URL.root(`/edupage/timetable-images?datefrom=${datefrom}&dateto=${dateto}&ids=${ids}`),
+	timetableImagesData: (datefrom = '', dateto = '', ids = '') =>
+		API_URL.root(`/edupage/timetable-images-data?datefrom=${datefrom}&dateto=${dateto}&ids=${ids}`),
 
 	telegram: () => API_URL.root(`/telegram/send`),
 }

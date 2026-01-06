@@ -30,6 +30,33 @@ class EduPageService {
 
 		return data
 	}
+
+	async getTimetableImage(datefrom: string, dateto: string, id: string) {
+		const { data } = await axiosClassic<{ id: string; url: string }>({
+			url: API_URL.timetableImage(datefrom, dateto, id),
+			method: 'GET',
+		})
+
+		return data
+	}
+
+	async getTimetableImages(datefrom: string, dateto: string, ids: string[]) {
+		const { data } = await axiosClassic<{ images: { id: string; url: string }[] }>({
+			url: API_URL.timetableImages(datefrom, dateto, ids.join(',')),
+			method: 'GET',
+		})
+
+		return data
+	}
+
+	async getTimetableImagesData(datefrom: string, dateto: string, ids: string[]) {
+		const { data } = await axiosClassic<{ images: { id: string; dataUrl: string }[] }>({
+			url: API_URL.timetableImagesData(datefrom, dateto, ids.join(',')),
+			method: 'GET',
+		})
+
+		return data
+	}
 }
 
 export const eduPageService = new EduPageService()

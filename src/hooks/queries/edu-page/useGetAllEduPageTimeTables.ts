@@ -7,7 +7,7 @@ import { useMemo } from 'react'
 
 const allGroupIds = ['-143', '-144', '-141', '-142']
 
-export const useGetAllEduPageTimeTables = (ids: string[]) => {
+export const useGetAllEduPageTimeTables = (ids: string[], enabled = true) => {
 	const searchParams = useSearchParams()
 	const datefrom = searchParams.get('datefrom') ?? getStartOfWeek()
 	const dateto = searchParams.get('dateto') ?? getEndOfWeek()
@@ -15,6 +15,7 @@ export const useGetAllEduPageTimeTables = (ids: string[]) => {
 	const queries = ids.map((id) => ({
 		queryKey: ['get eduPage TimeTable', datefrom, dateto, id],
 		queryFn: () => eduPageService.getTimeTable(datefrom, dateto, id),
+		enabled,
 	}))
 
 	const results = queries.map((query) => useQuery(query))

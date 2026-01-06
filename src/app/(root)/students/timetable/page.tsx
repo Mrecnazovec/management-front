@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { cacheLife } from 'next/cache'
-import { TimeTable } from './TimeTable'
 import { PUBLIC_URL } from '@/config/url.config'
 import { Bread } from '@/components/ui/Breadcrumb/Bread'
 import { Suspense } from 'react'
@@ -42,7 +41,6 @@ export default async function Page() {
 		<>
 			<Bread navigation={navigation} />
 			<Suspense fallback={<LoaderSkeleton />}>
-				{/* <TimeTable /> */}
 				<Schedule />
 			</Suspense>
 		</>
