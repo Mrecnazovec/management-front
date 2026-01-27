@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Button } from '@/components/ui/Button'
 import { Calendar } from '@/components/ui/Calendar'
@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useGetClassRoom } from '@/hooks/queries/edu-page/useGetClassRoom'
+import { useGetClassroomsWithSubjects } from '@/hooks/queries/edu-page/useGetClassroomsWithSubjects'
 import { useGetEduPageData } from '@/hooks/queries/edu-page/useGetEduPageData'
 import { getEndOfWeek, getStartOfWeek } from '@/lib/eduPageGetDate'
 import { generatePdfFromDom } from '@/lib/pdf-generator'
@@ -36,6 +37,21 @@ import dynamic from 'next/dynamic'
 
 const PDFPrintArea = dynamic(() => import('./PDFPrintArea'), { ssr: false })
 
+const FIND_CLASSROOM_VALUE = 'find'
+
+const BLOCKED_CLASSROOMS = new Set([
+	'zoom',
+	'аллея литераторов',
+	'нууз',
+	'планетарий',
+	'центр кинологии',
+	'школа',
+	'школа №50',
+	'я. телемост',
+	'international hotel tashkent',
+	'zoom м-23',
+])
+
 export function ClassRoomsSchedule() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
@@ -43,51 +59,60 @@ export function ClassRoomsSchedule() {
 	const { eduPageData, isLoading } = useGetEduPageData()
 
 	const allClassRooms =
-		eduPageData?.r.tables.find((t) => t.id === 'classrooms')?.data_rows.map((r) => ({
-			id: `${r.id}`,
-			name: r.name,
-			short: r.short,
-		})) || []
+		eduPageData?.r.tables
+			.find((t) => t.id === 'classrooms')
+			?.data_rows.map((r) => ({
+				id: `${r.id}`,
+				name: r.name,
+				short: r.short,
+			}))
+			.filter((room) => {
+				const label = (room.short ?? room.name ?? '').trim().toLowerCase()
+				return label && !BLOCKED_CLASSROOMS.has(label)
+			}) || []
 
-	const savedClassRoomId = Cookies.get('selected_classroom_id') || '-143'
-	const [selectedClassRoomId, setSelectedClassRoomId] = useState(savedClassRoomId)
-	const { classRoom, isLoading: isLoadingClassRoom } = useGetClassRoom(selectedClassRoomId || '-143')
-	const groupName = allClassRooms.find((r) => r.id === selectedClassRoomId)?.short || 'Аудитория'
+	const [hasMounted, setHasMounted] = useState(false)
+	const [selectedClassRoomId, setSelectedClassRoomId] = useState(FIND_CLASSROOM_VALUE)
+	const [selectedFreeRoomId, setSelectedFreeRoomId] = useState<string | null>(null)
+	const isFindMode = selectedClassRoomId === FIND_CLASSROOM_VALUE
+	const activeRoomId = isFindMode ? selectedFreeRoomId ?? undefined : selectedClassRoomId || '-143'
+	const { classRoom, isLoading: isLoadingClassRoom } = useGetClassRoom(activeRoomId)
+	const { classroomsWithSubjects, isLoading: isLoadingFindData } = useGetClassroomsWithSubjects(isFindMode)
+	const groupName = activeRoomId ? allClassRooms.find((r) => r.id === activeRoomId)?.short || 'Аудитория' : 'Аудитория'
 
 	const currentFrom = parseISO(searchParams.get('datefrom') ?? getStartOfWeek())
 	const currentTo = parseISO(searchParams.get('dateto') ?? getEndOfWeek())
 	const [calendarDate, setCalendarDate] = useState<Date | undefined>(currentFrom)
 
 	const [isMobile, setIsMobile] = useState(false)
+	const [isSmallScreen, setIsSmallScreen] = useState(false)
 	const [isGeneratingImages, setIsGeneratingImages] = useState(true)
 	const [tableImages, setTableImages] = useState<string[]>([])
 	const [imageLoadedMap, setImageLoadedMap] = useState<Record<number, boolean>>({})
+	const [findDate, setFindDate] = useState<string | null>(null)
+	const [findPeriod, setFindPeriod] = useState<number | null>(null)
+	const [findDuration, setFindDuration] = useState<number>(1)
 
 	useEffect(() => {
-		setIsMobile(window.matchMedia('(max-width: 1023px)').matches)
+		setHasMounted(true)
+		const savedClassRoomId = Cookies.get('selected_classroom_id')
+		if (savedClassRoomId) {
+			setSelectedClassRoomId(savedClassRoomId)
+		}
 	}, [])
 
 	useEffect(() => {
-		if (
-			!isMobile ||
-			!classRoom ||
-			isLoadingClassRoom ||
-			!groupName ||
-			groupName === 'Аудитория'
-		) {
-			return
-		}
+		setIsMobile(window.matchMedia('(max-width: 1023px)').matches)
+		setIsSmallScreen(window.matchMedia('(max-width: 639px)').matches)
+	}, [])
 
-		setIsGeneratingImages(true)
+	useEffect(() => {
+		if (isMobile) {
+			setIsGeneratingImages(true)
+		}
 		setTableImages([])
 		setImageLoadedMap({})
-
-		const timeout = setTimeout(() => {
-			generateTableImages().finally(() => setIsGeneratingImages(false))
-		}, 300)
-
-		return () => clearTimeout(timeout)
-	}, [isMobile, classRoom, isLoadingClassRoom, groupName])
+	}, [selectedClassRoomId, isMobile])
 
 	const generateTableImages = async () => {
 		const container = document.getElementById('pdf-print-area')
@@ -95,17 +120,15 @@ export function ClassRoomsSchedule() {
 		const children = Array.from(container.children)
 		if (!children.length) return
 
-		const images: string[] = []
 		for (let i = 0; i < children.length; i++) {
 			const node = children[i] as HTMLElement
 			try {
 				const dataUrl = await domtoimage.toPng(node, { cacheBust: true, bgcolor: '#ffffff' })
-				images.push(dataUrl)
+				setTableImages((prev) => [...prev, dataUrl])
 			} catch (error) {
 				console.error('Ошибка при генерации изображения таблицы:', error)
 			}
 		}
-		setTableImages(images)
 	}
 
 	const handleImageLoad = (index: number) => {
@@ -120,6 +143,11 @@ export function ClassRoomsSchedule() {
 
 	const handleChangeClassRoom = (value: string) => {
 		setSelectedClassRoomId(value)
+		if (value === FIND_CLASSROOM_VALUE) {
+			setSelectedFreeRoomId(null)
+			Cookies.set('selected_classroom_id', value, { expires: 30 })
+			return
+		}
 		Cookies.set('selected_classroom_id', value, { expires: 30 })
 	}
 
@@ -181,6 +209,78 @@ export function ClassRoomsSchedule() {
 		{ number: 5, start: '16:45', end: '18:15' },
 	]
 
+	useEffect(() => {
+		if (!findDate && weekDates.length > 0) {
+			setFindDate(weekDates[0])
+		} else if (findDate && !weekDates.includes(findDate) && weekDates.length > 0) {
+			setFindDate(weekDates[0])
+		}
+	}, [findDate, weekDates])
+
+	useEffect(() => {
+		if (!findPeriod && periods.length > 0) {
+			setFindPeriod(periods[0].number)
+		}
+	}, [findPeriod, periods])
+
+	const toMinutes = (time: string) => {
+		const [hours, minutes] = time.split(':').map((value) => Number(value))
+		return hours * 60 + minutes
+	}
+
+	const overlaps = (start: string, end: string, periodStart: string, periodEnd: string) => {
+		const startMinutes = toMinutes(start)
+		const endMinutes = toMinutes(end)
+		const pStart = toMinutes(periodStart)
+		const pEnd = toMinutes(periodEnd)
+		return startMinutes < pEnd && endMinutes > pStart
+	}
+
+	const classRoomNameMap = useMemo(
+		() => Object.fromEntries(allClassRooms.map((room) => [room.id, room.short ?? room.name ?? room.id])),
+		[allClassRooms]
+	)
+
+	const freeRooms = useMemo(() => {
+		if (!isFindMode || !findDate || !findPeriod || !classroomsWithSubjects) return []
+		const period = periods.find((p) => p.number === findPeriod)
+		const periodIndex = periods.findIndex((p) => p.number === findPeriod)
+		if (!period || periodIndex < 0) return []
+		if (findDuration < 1 || findDuration > 5) return []
+		if (periodIndex + findDuration > periods.length) return []
+		const requiredPeriods = periods.slice(periodIndex, periodIndex + findDuration)
+
+		return classroomsWithSubjects.classrooms
+			.filter((room) => {
+				const lessons = room.subjects.flatMap((subject) => subject.lessons ?? [])
+				const hasLesson = lessons.some((lesson) => {
+					if (lesson.date !== findDate || !lesson.starttime || !lesson.endtime) return false
+					return requiredPeriods.some((reqPeriod) =>
+						overlaps(lesson.starttime, lesson.endtime, reqPeriod.start, reqPeriod.end)
+					)
+				})
+				return !hasLesson
+			})
+			.map((room) => ({
+				id: room.id,
+				name: classRoomNameMap[room.id] ?? room.name ?? room.id,
+			}))
+	}, [isFindMode, findDate, findPeriod, findDuration, classroomsWithSubjects, periods, classRoomNameMap])
+
+	useEffect(() => {
+		if (!isFindMode) {
+			if (selectedFreeRoomId) setSelectedFreeRoomId(null)
+			return
+		}
+		if (!freeRooms.length) {
+			if (selectedFreeRoomId) setSelectedFreeRoomId(null)
+			return
+		}
+		if (!selectedFreeRoomId || !freeRooms.some((room) => room.id === selectedFreeRoomId)) {
+			setSelectedFreeRoomId(freeRooms[0].id)
+		}
+	}, [isFindMode, freeRooms, selectedFreeRoomId])
+
 	function splitIntoPeriodCards(item: TimetableItem) {
 		const startTime = parse(item.starttime, 'HH:mm', new Date())
 		const endTime = parse(item.endtime, 'HH:mm', new Date())
@@ -212,17 +312,50 @@ export function ClassRoomsSchedule() {
 	const tablesToShow = classRoom ? [classRoom] : []
 	const groupIds = allClassRooms.map((r) => r.id)
 
+	useEffect(() => {
+		if (
+			!isMobile ||
+			!classRoom ||
+			isLoadingClassRoom ||
+			!groupName ||
+			(isFindMode && (!findDate || !findPeriod)) ||
+			groupName === 'Аудитория'
+		) {
+			return
+		}
+
+		setIsGeneratingImages(true)
+		setTableImages([])
+		setImageLoadedMap({})
+
+		const timeout = setTimeout(() => {
+			generateTableImages().finally(() => setIsGeneratingImages(false))
+		}, 300)
+
+		return () => clearTimeout(timeout)
+	}, [isMobile, isFindMode, findDate, findPeriod, findDuration, classRoom, isLoadingClassRoom, groupName])
+
 	return (
 		<>
 			<Container>
 				{/* Header */}
 				<div className="flex flex-wrap items-center lg:flex-row flex-col lg:justify-between justify-center gap-4 mb-4">
 					<div className="flex gap-2 xs:flex-row flex-col justify-center items-center">
-						<Select value={selectedClassRoomId || 'Аудитория'} onValueChange={handleChangeClassRoom} disabled={isLoadingClassRoom}>
+						<Select
+							value={selectedClassRoomId || 'Аудитория'}
+							onValueChange={handleChangeClassRoom}
+							disabled={!hasMounted || isLoadingClassRoom}
+						>
 							<SelectTrigger className="w-full">
 								<SelectValue placeholder="Выбери аудиторию" />
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent
+								align={isSmallScreen ? 'center' : 'start'}
+								viewportClassName="grid sm:grid-cols-3 grid-cols-2 gap-1"
+							>
+								<SelectItem value={FIND_CLASSROOM_VALUE} className="col-span-2 sm:col-span-3 font-semibold">
+									Найти аудиторию
+								</SelectItem>
 								{allClassRooms.map((room) => (
 									<SelectItem key={room.id} value={room.id}>
 										{room.short}
@@ -230,24 +363,24 @@ export function ClassRoomsSchedule() {
 								))}
 							</SelectContent>
 						</Select>
-						<Link href={PUBLIC_URL.timetable()}><Button disabled={isLoading || isLoadingClassRoom} variant='outline' className='text-sm'>
+						<Link href={PUBLIC_URL.timetable()}><Button disabled={!hasMounted || isLoading || isLoadingClassRoom} variant='outline' className='text-sm'>
 							Предметы
 						</Button></Link>
 					</div>
 
 					{isNotCurrentWeek && (
-						<Button onClick={returnToCurrentWeek} disabled={isLoadingClassRoom} variant="main" className="text-sm">
+						<Button onClick={returnToCurrentWeek} disabled={!hasMounted || isLoadingClassRoom} variant="main" className="text-sm">
 							Вернуться к текущей неделе
 						</Button>
 					)}
 
 					<div className="flex gap-2">
-						<Button onClick={() => changeWeek('prev')} disabled={isLoadingClassRoom} variant="outline">
+						<Button onClick={() => changeWeek('prev')} disabled={!hasMounted || isLoadingClassRoom} variant="outline">
 							<ArrowLeft className="size-4" />
 						</Button>
 						<Popover>
 							<PopoverTrigger asChild>
-								<Button disabled={isLoadingClassRoom} variant="outline">
+								<Button disabled={!hasMounted || isLoadingClassRoom} variant="outline">
 									<Calendar1 /> {calendarDate ? format(calendarDate, 'dd.MM.yyyy') : 'Дата'}
 								</Button>
 							</PopoverTrigger>
@@ -262,24 +395,116 @@ export function ClassRoomsSchedule() {
 								/>
 							</PopoverContent>
 						</Popover>
-						<Button onClick={() => changeWeek('next')} disabled={isLoadingClassRoom} variant="outline">
+						<Button onClick={() => changeWeek('next')} disabled={!hasMounted || isLoadingClassRoom} variant="outline">
 							<ArrowRight className="size-4" />
 						</Button>
 					</div>
 				</div>
 
+				{isFindMode && (
+					<div className="mb-4 rounded-lg border border-border p-4">
+						<div className="flex flex-wrap gap-3">
+							<div className="min-w-[220px]">
+								<div className="text-xs text-muted-foreground mb-1">День</div>
+								<Select value={findDate ?? ''} onValueChange={(value) => setFindDate(value)}>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Выбери день" />
+									</SelectTrigger>
+									<SelectContent>
+										{weekDates.map((date) => {
+											const dayName = format(parseISO(date), 'EEE', { locale: ru })
+											const formattedDate = format(parseISO(date), 'dd.MM')
+											return (
+												<SelectItem key={date} value={date}>
+													{dayName.charAt(0).toUpperCase() + dayName.slice(1)} {formattedDate}
+												</SelectItem>
+											)
+										})}
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="min-w-[220px]">
+								<div className="text-xs text-muted-foreground mb-1">Пара</div>
+								<Select
+									value={findPeriod ? String(findPeriod) : ''}
+									onValueChange={(value) => setFindPeriod(Number(value))}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Выбери пару" />
+									</SelectTrigger>
+									<SelectContent>
+										{periods.map((period) => (
+											<SelectItem key={period.number} value={String(period.number)}>
+												{period.number} ({period.start}-{period.end})
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="min-w-[220px]">
+								<div className="text-xs text-muted-foreground mb-1">Длительность</div>
+								<Select
+									value={String(findDuration)}
+									onValueChange={(value) => setFindDuration(Number(value))}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Сколько пар" />
+									</SelectTrigger>
+									<SelectContent>
+										{[1, 2, 3, 4, 5].map((count) => (
+											<SelectItem key={count} value={String(count)}>
+												{count}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						<div className="mt-4">
+							<div className="text-sm font-medium mb-2">Свободные аудитории: {freeRooms.length}</div>
+							{isLoadingFindData ? (
+								<Skeleton className="h-[120px] w-full" />
+							) : freeRooms.length === 0 ? (
+								<div className="text-sm text-muted-foreground">Нет свободных аудиторий</div>
+							) : (
+								<div className="flex flex-wrap gap-2">
+									{freeRooms.map((room) => (
+										<Button
+											key={room.id}
+											variant={selectedFreeRoomId === room.id ? 'main' : 'outline'}
+											size="sm"
+											onClick={() => setSelectedFreeRoomId(room.id)}
+										>
+											{room.name}
+										</Button>
+									))}
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+
 				{/* Desktop версия */}
 				{isLoadingClassRoom || isLoading ? (
 					<LoaderSkeleton />
+				) : isFindMode && !selectedFreeRoomId ? (
+					<div className="text-sm text-muted-foreground">Выберите аудиторию из списка</div>
 				) : (
 					<ScheduleTable
 						groupName={groupName}
-						periods={periods} weekDates={weekDates}
+						periods={periods}
+						weekDates={weekDates}
 						items={classRoom?.r.ttitems ?? []}
 						getSubjectName={(id) => subjectMap[id] ?? null}
 						getClassName={(id) => subjectMap[id] ?? null}
 						getClassroomsName={(id) => classroomsMap[id] ?? null}
-						getTeachersName={(id) => teachersMap[id] ?? null} splitIntoPeriodCards={splitIntoPeriodCards} />
+						getTeachersName={(id) => teachersMap[id] ?? null}
+						splitIntoPeriodCards={splitIntoPeriodCards}
+						highlightedDate={isFindMode ? findDate ?? undefined : undefined}
+						highlightedPeriod={isFindMode ? findPeriod ?? undefined : undefined}
+						highlightedDuration={isFindMode ? findDuration : undefined}
+					/>
 				)}
 
 				{/* Скрытая область для печати */}
@@ -295,13 +520,16 @@ export function ClassRoomsSchedule() {
 					splitIntoPeriodCards={splitIntoPeriodCards}
 					allClassRooms={allClassRooms}
 					getClassName={(id) => subjectMap[id] ?? null}
-
+					activeRoomId={activeRoomId}
+					highlightedDate={isFindMode ? findDate ?? undefined : undefined}
+					highlightedPeriod={isFindMode ? findPeriod ?? undefined : undefined}
+					highlightedDuration={isFindMode ? findDuration : undefined}
 				/>
 			</Container>
 
 			{/* Mobile версия */}
 			<div className="block lg:hidden space-y-4 mb-15">
-				{isGeneratingImages || tableImages.length === 0
+				{isGeneratingImages && tableImages.length === 0
 					? Array.from({ length: 1 }).map((_, idx) => <Skeleton key={idx} className="w-full h-[300px]" />)
 					: tableImages.map((src, idx) => (
 						<div key={idx} className="relative w-full overflow-hidden rounded-lg">

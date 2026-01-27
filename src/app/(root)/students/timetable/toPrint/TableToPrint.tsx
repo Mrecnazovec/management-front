@@ -12,7 +12,9 @@ interface ScheduleTableProps {
 	getTeachersName: (id: string) => string | null
 	splitIntoPeriodCards: (item: TimetableItem) => TimetableItem[]
 	getClassName?: (id: string) => string | null
-
+	highlightedDate?: string
+	highlightedPeriod?: number
+	highlightedDuration?: number
 }
 
 export function TableToPrint({
@@ -25,6 +27,9 @@ export function TableToPrint({
 	getClassroomsName,
 	getTeachersName,
 	splitIntoPeriodCards,
+	highlightedDate,
+	highlightedPeriod,
+	highlightedDuration = 1,
 }: ScheduleTableProps) {
 	return (
 		<div className='px-10 py-10'>
@@ -35,7 +40,7 @@ export function TableToPrint({
 						<th className='border-[3px] px-2 py-1 text-left text-lg'>День</th>
 						{periods.map((period) => (
 							<th key={period.number} className='border-[3px] px-2 py-1 text-center'>
-								<p className='text-2xl mb-0'>{period.number}</p>({period.start}–{period.end})
+								<p className='text-2xl mb-0'>{period.number}</p>({period.start}-{period.end})
 							</th>
 						))}
 					</tr>
@@ -67,17 +72,30 @@ export function TableToPrint({
 								{periods.map((period) => {
 									const lessons = dayPeriods[period.number] || []
 									lessons.sort((a, b) => a.starttime.localeCompare(b.starttime))
+									const isHighlighted =
+										highlightedDate === date &&
+										typeof highlightedPeriod === 'number' &&
+										period.number >= highlightedPeriod &&
+										period.number < highlightedPeriod + highlightedDuration
 									return (
-										<td key={period.number} className='border-[3px] px-2 py-1 align-center w-[20%] h-[200px]'>
+										<td
+											key={period.number}
+											className={`border-[3px] px-2 py-1 align-center w-[20%] h-[200px] ${
+												isHighlighted ? 'bg-[#e6f4ea]' : ''
+											}`}
+										>
 											{lessons.map((item, idx) => (
 												<div key={idx} className='mb-1 text-center py-4 relative h-full flex items-center justify-center'>
-
 													{getClassName ? (
 														<div className='text-3xl font-semibold'>
 															{item.classids.map(getClassName).filter(Boolean).join(', ')}
 														</div>
-													) : <div className='font-semibold text-xl'>{getSubjectName(item.subjectid)}</div>}
-													<div className='text-xl absolute left-0 top-0'>{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}</div>
+													) : (
+														<div className='font-semibold text-xl'>{getSubjectName(item.subjectid)}</div>
+													)}
+													<div className='text-xl absolute left-0 top-0'>
+														{item.classroomids.map(getClassroomsName).filter(Boolean).join(', ')}
+													</div>
 													<div className='text-xl italic absolute right-0 bottom-0'>
 														{item.teacherids.map(getTeachersName).filter(Boolean).join(', ')}
 													</div>

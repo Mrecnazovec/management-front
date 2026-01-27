@@ -1,5 +1,6 @@
 import { axiosClassic } from '@/api/api.interceptors'
 import { API_URL } from '@/config/api.config'
+import { EduPageClassroomsWithSubjects } from '@/shared/types/edu-page-classrooms-with-subjects.interface'
 import { EduPageData } from '@/shared/types/edu-page-data.interface'
 import { EduPageTimeTable } from '@/shared/types/edu-page-timetable.interface'
 
@@ -25,6 +26,15 @@ class EduPageService {
 	async getClassRooms(datefrom: string, dateto: string, id: string) {
 		const { data } = await axiosClassic<EduPageTimeTable>({
 			url: API_URL.classrooms(datefrom, dateto, id),
+			method: 'GET',
+		})
+
+		return data
+	}
+
+	async getClassroomsWithSubjects(datefrom: string, dateto: string) {
+		const { data } = await axiosClassic<EduPageClassroomsWithSubjects>({
+			url: API_URL.classroomsWithSubjects(datefrom, dateto),
 			method: 'GET',
 		})
 

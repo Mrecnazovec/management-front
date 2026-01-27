@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Cookies from 'js-cookie'
 import { TableToPrint } from '../toPrint/TableToPrint'
@@ -19,6 +19,10 @@ interface PDFPrintAreaProps {
 	getTeachersName: (id: string) => string | null
 	splitIntoPeriodCards: (item: any) => any[]
 	getClassName?: (id: string) => string | null
+	activeRoomId?: string
+	highlightedDate?: string
+	highlightedPeriod?: number
+	highlightedDuration?: number
 
 }
 
@@ -34,6 +38,10 @@ export default function PDFPrintArea({
 	getClassroomsName,
 	getTeachersName,
 	splitIntoPeriodCards,
+	activeRoomId,
+	highlightedDate,
+	highlightedPeriod,
+	highlightedDuration,
 }: PDFPrintAreaProps) {
 	const myGroupId = Cookies.get('selected_classroom_id') ?? '-143'
 
@@ -50,7 +58,7 @@ export default function PDFPrintArea({
 		>
 			{tablesToShow.map((tableData, index) => {
 				const items = tableData?.r.ttitems ?? []
-				const classId = myGroupId !== 'all' ? myGroupId : groupIds[index]
+				const classId = activeRoomId ?? (myGroupId !== 'all' ? myGroupId : groupIds[index])
 				const groupName =
 					allClassRooms.find((r) => r.id === classId)?.short || 'Аудитория'
 
@@ -66,9 +74,13 @@ export default function PDFPrintArea({
 						getTeachersName={getTeachersName}
 						splitIntoPeriodCards={splitIntoPeriodCards}
 						getClassName={getClassName}
+						highlightedDate={highlightedDate}
+						highlightedPeriod={highlightedPeriod}
+						highlightedDuration={highlightedDuration}
 					/>
 				)
 			})}
 		</div>
 	)
 }
+
