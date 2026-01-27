@@ -354,7 +354,7 @@ export function ClassRoomsSchedule() {
 								viewportClassName="grid sm:grid-cols-3 grid-cols-2 gap-1"
 							>
 								<SelectItem value={FIND_CLASSROOM_VALUE} className="col-span-2 sm:col-span-3 font-semibold">
-									Найти аудиторию
+									Свободные аудитории
 								</SelectItem>
 								{allClassRooms.map((room) => (
 									<SelectItem key={room.id} value={room.id}>
