@@ -3,9 +3,14 @@ import { API_URL } from '@/config/api.config'
 import { INew, INewForm } from '@/shared/types/new.interface'
 
 class NewService {
-	async getAll(limit?: number) {
-		const { data } = await axiosClassic<INew[]>({
-			url: API_URL.getNews(limit),
+	async getAll(params?: { limit?: number; page?: number }) {
+		const query = new URLSearchParams()
+		if (params?.limit) query.set('limit', String(params.limit))
+		if (params?.page) query.set('page', String(params.page))
+		const suffix = query.toString() ? `?${query.toString()}` : ''
+
+		const { data } = await axiosClassic<{ items: INew[]; total: number; page: number; limit: number }>({
+			url: API_URL.news(`${suffix}`),
 			method: 'GET',
 		})
 

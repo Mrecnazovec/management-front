@@ -29,6 +29,7 @@ export const MenuSections = [
 			{ href: PUBLIC_URL.university('teachers'), label: 'Преподаватели' },
 			{ href: PUBLIC_URL.university('union'), label: 'Студ. совет' },
 			{ href: PUBLIC_URL.university('news'), label: 'Новости' },
+			{ href: PUBLIC_URL.blog(), label: '\u0411\u043b\u043e\u0433' },
 		],
 	},
 	{
@@ -44,3 +45,4 @@ export const MenuSections = [
 		],
 	},
 ]
+

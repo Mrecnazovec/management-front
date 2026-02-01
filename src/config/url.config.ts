@@ -9,6 +9,8 @@ export const PUBLIC_URL = {
 	university: (url = '') => PUBLIC_URL.root(`/university/${url ? url : ''}`),
 	role: (role = '', url = '') => PUBLIC_URL.root(`/${role === 'mentors' ? 'students' : 'university'}/${role}/${url ? url : ''}`),
 	news: (url = '') => PUBLIC_URL.root(`/university/news/${url ? url : ''}`),
+	blog: (url = '') => PUBLIC_URL.root(`/blog/${url ? url : ''}`),
+	blogBookDownload: (id: string) => PUBLIC_URL.root(`/blog/books/${id}/download`),
 	students: (url = '') => PUBLIC_URL.root(`/students/${url ? url : ''}`),
 	timetable: (url = '') => PUBLIC_URL.root(`/students/timetable/${url ? url : ''}`),
 	subjects: (url = '') => PUBLIC_URL.root(`/students/subjects/${url ? url : ''}`),
@@ -21,6 +23,7 @@ export const ADMIN_URL = {
 
 	home: () => ADMIN_URL.root('/'),
 	news: (url = '') => ADMIN_URL.root(`/news/${url}`),
+	blog: (url = '') => ADMIN_URL.root(`/blog/${url}`),
 	administration: (url = '') => ADMIN_URL.root(`/administration/${url}`),
 	teachers: (url = '') => ADMIN_URL.root(`/teachers/${url}`),
 	union: (url = '') => ADMIN_URL.root(`/union/${url}`),

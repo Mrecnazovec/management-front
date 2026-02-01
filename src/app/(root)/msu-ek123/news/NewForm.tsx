@@ -23,6 +23,7 @@ import { useForm } from 'react-hook-form'
 
 interface NewFormProps {
 	post?: INew | null
+	showPublishToTelegram?: boolean
 }
 
 const toDateOrUndefined = (value?: string | Date | null) => {
@@ -44,7 +45,7 @@ const setTimeOnDate = (timeValue: string, currentDate?: Date) => {
 	return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hours, minutes)
 }
 
-export function NewForm({ post }: NewFormProps) {
+export function NewForm({ post, showPublishToTelegram }: NewFormProps) {
 	const { createNew, isLoadingCreate } = useCreateNew()
 	const { updateNew, isLoadingUpdate } = useUpdateNew()
 	const { deleteNew, isLoadingDelete } = useDeleteNew()
@@ -62,6 +63,7 @@ export function NewForm({ post }: NewFormProps) {
 			slug: post?.slug || '',
 			title: post?.title || '',
 			isTopNew: post?.isTopNew || false,
+			publishToTelegram: false,
 			createdAt: toDateOrUndefined(post?.createdAt ?? null),
 		},
 	})
@@ -74,6 +76,7 @@ export function NewForm({ post }: NewFormProps) {
 				slug: post?.slug || '',
 				title: post?.title || '',
 				isTopNew: post?.isTopNew || false,
+				publishToTelegram: false,
 				createdAt: toDateOrUndefined(post?.createdAt ?? null),
 			})
 		}
@@ -172,56 +175,70 @@ export function NewForm({ post }: NewFormProps) {
 						)}
 					/>
 					<FormField
-						control={control}
-						name='createdAt'
-						render={({ field }) => (
-							<FormItem className='space-y-2'>
-								<FormLabel>Дата публикации</FormLabel>
-								<div className='flex flex-col gap-2 sm:flex-row'>
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button
-												variant='outline'
-												className='w-full justify-start sm:w-[220px]'
-												disabled={isSubmitting}
-											>
-												<CalendarIcon className='mr-2 h-4 w-4' />
-												{field.value ? (
-													format(field.value as Date, 'dd.MM.yyyy')
-												) : (
-													<span className='text-muted-foreground'>Выберите дату</span>
-												)}
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className='w-auto p-0' align='start'>
-											<Calendar
-												mode='single'
-												selected={field.value ? (field.value as Date) : undefined}
-												onSelect={(date) => field.onChange(date ? mergeDateAndTime(date, field.value as Date | undefined) : undefined)}
-												initialFocus
-											/>
-										</PopoverContent>
-									</Popover>
-								</div>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={control}
-						name='isTopNew'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Топ новость?</FormLabel>
-								<FormControl>
-									<Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isSubmitting} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
-					<Button type='submit' variant={'main'} disabled={isSubmitting || isLoadingCreate || isLoadingUpdate} className='mt-4'>
+	control={control}
+	name='createdAt'
+	render={({ field }) => (
+		<FormItem className='space-y-2'>
+			<FormLabel>Дата публикации</FormLabel>
+			<div className='flex flex-col gap-2 sm:flex-row'>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							variant='outline'
+							className='w-full justify-start sm:w-[220px]'
+							disabled={isSubmitting}
+						>
+							<CalendarIcon className='mr-2 h-4 w-4' />
+							{field.value ? (
+								format(field.value as Date, 'dd.MM.yyyy')
+							) : (
+								<span className='text-muted-foreground'>Выберите дату</span>
+							)}
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent className='w-auto p-0' align='start'>
+						<Calendar
+							mode='single'
+							selected={field.value ? (field.value as Date) : undefined}
+							onSelect={(date) => field.onChange(date ? mergeDateAndTime(date, field.value as Date | undefined) : undefined)}
+							initialFocus
+						/>
+					</PopoverContent>
+				</Popover>
+			</div>
+			<FormMessage />
+		</FormItem>
+	)}
+/>
+<FormField
+	control={control}
+	name='isTopNew'
+	render={({ field }) => (
+		<FormItem>
+			<FormLabel>Топ новость?</FormLabel>
+			<FormControl>
+				<Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isSubmitting} />
+			</FormControl>
+			<FormMessage />
+		</FormItem>
+	)}
+/>
+{showPublishToTelegram && (
+	<FormField
+		control={control}
+		name='publishToTelegram'
+		render={({ field }) => (
+			<FormItem>
+				<FormLabel>Опубликовать в канале?</FormLabel>
+				<FormControl>
+					<Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isSubmitting} />
+				</FormControl>
+				<FormMessage />
+			</FormItem>
+		)}
+	/>
+)}
+<Button type='submit' variant={'main'} disabled={isSubmitting || isLoadingCreate || isLoadingUpdate} className='mt-4'>
 						{action}
 					</Button>
 				</form>
@@ -229,3 +246,7 @@ export function NewForm({ post }: NewFormProps) {
 		</Container>
 	)
 }
+
+
+
+

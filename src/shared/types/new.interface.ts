@@ -4,6 +4,7 @@ export interface INewForm {
 	text: string
 	slug: string
 	isTopNew: boolean
+	publishToTelegram?: boolean
 	createdAt?: string | Date | null
 }
 

@@ -20,7 +20,7 @@ export function NewsCarousel({ classname }: Props) {
 	const [api, setApi] = React.useState<CarouselApi>()
 	const [current, setCurrent] = React.useState(0)
 	const [count, setCount] = React.useState(0)
-	const { posts, isLoading } = useGetNews(10)
+	const { posts, isLoading } = useGetNews({ limit: 10, page: 1 })
 
 	React.useEffect(() => {
 		if (!api) {
@@ -50,7 +50,7 @@ export function NewsCarousel({ classname }: Props) {
 				{isLoading ? (
 					<NewsCardSkeletonCarousel />
 				) : (
-					posts?.map((post) => (
+					posts?.items?.map((post) => (
 						<CarouselItem key={post.id} className='md:basis-1/3 sm:basis-1/2 basis-1/1'>
 							<NewsCard post={post} />
 						</CarouselItem>

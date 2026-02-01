@@ -1,5 +1,5 @@
 import { NewForm } from '../NewForm'
 
 export function CreateNew() {
-	return <NewForm />
+	return <NewForm showPublishToTelegram />
 }

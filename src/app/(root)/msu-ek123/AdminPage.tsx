@@ -1,6 +1,7 @@
 'use client'
 
 import { AdministrationIcon } from '@/components/icons/AdministrationIcon'
+import { BlogIcon } from '@/components/icons/BlogIcon'
 import { MentorsIcon } from '@/components/icons/MentorsIcon'
 import { ModeratorsIcon } from '@/components/icons/ModeratorsIcon'
 import { NewsIcon } from '@/components/icons/NewsIcon'
@@ -24,6 +25,11 @@ export function AdminPage() {
 			href: ADMIN_URL.news(),
 			image: <NewsIcon />,
 			title: 'Новости',
+		},
+		{
+			href: ADMIN_URL.blog(),
+			image: <BlogIcon />,
+			title: 'Блог',
 		},
 		{
 			href: ADMIN_URL.administration(),
@@ -104,3 +110,5 @@ export function AdminPage() {
 		</>
 	)
 }
+
+

@@ -7,6 +7,7 @@ import { NumberSection } from '@/components/sections/home/NumberSection'
 import AOSComponent from '@/lib/aos'
 
 const NewsSection = dynamic(() => import('@/components/sections/home/NewsSection'))
+const BlogSection = dynamic(() => import('@/components/sections/home/BlogSection'))
 const HistorySection = dynamic(() => import('@/components/sections/home/HistorySection'))
 const FormModal = dynamic(() => import('@/components/ui/modals/FormModal'))
 
@@ -33,6 +34,11 @@ export function Home() {
 			<AOSComponent>
 				<div data-aos='fade-up'>
 					<NewsSection />
+				</div>
+			</AOSComponent>
+			<AOSComponent>
+				<div data-aos='fade-up'>
+					<BlogSection />
 				</div>
 			</AOSComponent>
 			{/* <FormModal /> */}

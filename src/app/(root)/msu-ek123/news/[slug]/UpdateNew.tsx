@@ -14,7 +14,7 @@ export function UpdateNew() {
 			link: PUBLIC_URL.home(),
 		},
 		{
-			title: 'Админка',
+			title: 'Админ панель',
 			link: ADMIN_URL.home(),
 		},
 		{

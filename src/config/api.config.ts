@@ -10,6 +10,10 @@ export const API_URL = {
 	files: (url = '') => API_URL.root(`/files/${url}`),
 	news: (url = '') => API_URL.root(`/news/${url}`),
 	getNews: (limit?: number) => API_URL.root(`/news?limit=${limit}`),
+	blog: (url = '') => API_URL.root(`/blog/${url}`),
+	adminBooks: (url = '') => API_URL.root(`/admin/books/${url}`),
+	adminPosts: (url = '') => API_URL.root(`/admin/posts/${url}`),
+	adminBlogSettings: () => API_URL.root(`/admin/blog-settings`),
 
 	edupage: (url = '') => API_URL.root(`/edupage/${url}`),
 	fetch: (datefrom = '', dateto = '') => API_URL.root(`/edupage/fetch?datefrom=${datefrom}&dateto=${dateto}`),
