@@ -11,9 +11,10 @@ const STUB_SLUG = '__news_stub__'
 
 export async function generateStaticParams() {
 	try {
-		const posts = await newService.getAll()
+		const response = await newService.getAll({ limit: 500, page: 1 })
+		const posts = response?.items ?? []
 
-		if (!posts || posts.length === 0) {
+		if (posts.length === 0) {
 			return [{ slug: STUB_SLUG }]
 		}
 

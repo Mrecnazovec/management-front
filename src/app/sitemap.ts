@@ -4,8 +4,8 @@ import { subjectService } from '@/services/subject.service'
 import type { MetadataRoute } from 'next'
 
 export async function getNews(): Promise<{ slug: string }[]> {
-	const posts = await newService.getAll()
-	return posts
+	const response = await newService.getAll({ limit: 500, page: 1 })
+	return response?.items ?? []
 }
 
 export async function getMentors(): Promise<{ slug: string }[]> {
