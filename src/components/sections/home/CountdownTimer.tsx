@@ -1,9 +1,10 @@
-'use client'
+﻿'use client'
 
-import { useEffect, useState } from 'react'
+import { Container } from '@/components/ui/Container'
+import AOSComponent from '@/lib/aos'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
-import AOSComponent from '@/lib/aos'
+import { useEffect, useState } from 'react'
 
 dayjs.extend(duration)
 
@@ -20,6 +21,7 @@ const declension = (num: number, words: [string, string, string]) => {
 
 export default function CountdownTimer() {
 	const deadline = dayjs('2026-02-23T23:59:59')
+	const [isExpired, setIsExpired] = useState(false)
 
 	const [timeLeft, setTimeLeft] = useState<TimeLeft>({
 		days: 0,
@@ -34,10 +36,12 @@ export default function CountdownTimer() {
 			const diff = deadline.diff(now)
 
 			if (diff <= 0) {
+				setIsExpired(true)
 				setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 				return
 			}
 
+			setIsExpired(false)
 			const d = dayjs.duration(diff)
 
 			setTimeLeft({
@@ -56,32 +60,40 @@ export default function CountdownTimer() {
 	return (
 		<AOSComponent>
 			<div className='flex justify-center items-center flex-col bg-white text-main mb-14' data-aos='fade-up'>
-				<h2 className='sm:text-4xl text-2xl mb-6 text-center'>До 20-летия Ташкентского филиала МГУ осталось:</h2>
-				<div className='flex items-center sm:text-5xl text-3xl text-center gap-4'>
-					<div className='relative'>
-						<span>{String(timeLeft.days).padStart(2, '0')}</span>
-						<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.days, ['день', 'дня', 'дней'])}</div>
-					</div>
-					<div>:</div>
-					<div className='relative'>
-						<span>{String(timeLeft.hours).padStart(2, '0')}</span>
-						<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.hours, ['час', 'часа', 'часов'])}</div>
-					</div>
-					<div>:</div>
-					<div className='relative'>
-						<span>{String(timeLeft.minutes).padStart(2, '0')}</span>
-						<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>
-							{declension(timeLeft.minutes, ['минута', 'минуты', 'минут'])}
+				<h2 className='sm:text-4xl text-2xl mb-6 text-center'>
+					{isExpired ? 'Ташкентскому филиалу МГУ 20 лет!' : 'До 20-летия Ташкентского филиала МГУ осталось:'}
+				</h2>
+				{isExpired ? (
+					<Container>
+						<div className='w-full aspect-video overflow-hidden rounded-lg'>
+						<video className='w-full h-full object-cover scale-105' autoPlay muted loop playsInline preload='auto'>
+								<source src='/video/msu20.mp4' type='video/mp4' />
+							</video>
+						</div>
+					</Container>
+				) : (
+					<div className='flex items-center sm:text-5xl text-3xl text-center gap-4'>
+						<div className='relative'>
+							<span>{String(timeLeft.days).padStart(2, '0')}</span>
+							<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.days, ['день', 'дня', 'дней'])}</div>
+						</div>
+						<div>:</div>
+						<div className='relative'>
+							<span>{String(timeLeft.hours).padStart(2, '0')}</span>
+							<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.hours, ['час', 'часа', 'часов'])}</div>
+						</div>
+						<div>:</div>
+						<div className='relative'>
+							<span>{String(timeLeft.minutes).padStart(2, '0')}</span>
+							<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.minutes, ['минута', 'минуты', 'минут'])}</div>
+						</div>
+						<div>:</div>
+						<div className='relative'>
+							<span>{String(timeLeft.seconds).padStart(2, '0')}</span>
+							<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>{declension(timeLeft.seconds, ['секунда', 'секунды', 'секунд'])}</div>
 						</div>
 					</div>
-					<div>:</div>
-					<div className='relative'>
-						<span>{String(timeLeft.seconds).padStart(2, '0')}</span>
-						<div className='absolute -bottom-6 left-1/2 -translate-x-1/2 text-base'>
-							{declension(timeLeft.seconds, ['секунда', 'секунды', 'секунд'])}
-						</div>
-					</div>
-				</div>
+				)}
 			</div>
 		</AOSComponent>
 	)
