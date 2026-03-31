@@ -1,10 +1,10 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import CountdownTimer from '@/components/sections/home/CountdownTimer'
 import { NavigationSection } from '@/components/sections/home/NavigationSection'
 import { NumberSection } from '@/components/sections/home/NumberSection'
 import AOSComponent from '@/lib/aos'
+import dynamic from 'next/dynamic'
 
 const NewsSection = dynamic(() => import('@/components/sections/home/NewsSection'))
 const BlogSection = dynamic(() => import('@/components/sections/home/BlogSection'))
@@ -18,30 +18,14 @@ export function Home() {
 			<AOSComponent>
 				<div data-aos='fade-up'>
 					<NavigationSection />
-				</div>
-			</AOSComponent>
-			<CountdownTimer />
-			<AOSComponent>
-				<div data-aos='fade-up'>
+					<CountdownTimer />
 					<NumberSection />
-				</div>
-			</AOSComponent>
-			<AOSComponent>
-				<div data-aos='fade-up'>
 					<HistorySection />
-				</div>
-			</AOSComponent>
-			<AOSComponent>
-				<div data-aos='fade-up'>
 					<NewsSection />
-				</div>
-			</AOSComponent>
-			<AOSComponent>
-				<div data-aos='fade-up'>
 					<BlogSection />
+					{/* <FormModal /> */}
 				</div>
 			</AOSComponent>
-			{/* <FormModal /> */}
 		</>
 	)
 }

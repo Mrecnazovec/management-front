@@ -15,7 +15,7 @@ export function Footer() {
 						<p className='text-base font-semibold'>
 							Направление Менеджмент <br /> ТФ МГУ имени М.В.Ломоносова
 						</p>
-						<p className='text-base font-normal mb-[30px]'>© 2023-2025</p>
+						<p className='text-base font-normal mb-[30px]'>© 2023-2026</p>
 					</li>
 					<li className='flex flex-col gap-[30px]'>
 						<p className='text-base font-semibold max-w-[410px]'>
@@ -28,8 +28,8 @@ export function Footer() {
 					<li className='flex flex-col gap-[30px]'>
 						<p className='text-base font-semibold max-w-[214px]'>
 							Сайт выполнен Научным сектором Менеджмента -{' '}
-							<Link className='underline' href='https://t.me/AlexITdrom'>
-								Alexander
+							<Link className='underline' href='https://t.me/Sallexe'>
+								Александр
 							</Link>
 						</p>
 					</li>

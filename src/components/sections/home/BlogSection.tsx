@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
 export default function BlogSection() {
-	const { posts, isLoading } = useGetPublicPosts(10)
+	const { posts, isLoading } = useGetPublicPosts(6)
 
 	return (
 		<Container className='mb-20'>

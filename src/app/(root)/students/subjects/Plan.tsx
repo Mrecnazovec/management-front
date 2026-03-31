@@ -1,14 +1,13 @@
 'use client'
 
 import { Container } from '@/components/ui/Container'
-import { SubjectsBlock } from '../../msu-ek123/subjects/SubjectsBlock'
-import { useGetSubjects } from '@/hooks/queries/subjects/useGetSubjects'
-import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/form-element/Input'
-import Link from 'next/link'
 import { PUBLIC_URL } from '@/config/url.config'
+import { useGetSubjects } from '@/hooks/queries/subjects/useGetSubjects'
 import Image from 'next/image'
-import AOSComponent from '@/lib/aos'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
+import { SubjectsBlock } from '../../msu-ek123/subjects/SubjectsBlock'
 
 export function Plan() {
 	const combinations = [
@@ -30,16 +29,16 @@ export function Plan() {
 		return subjects?.filter((subject) => subject.title.toLowerCase().includes(search.toLowerCase())) ?? []
 	}, [search, subjects])
 	return (
-		<AOSComponent>
-			<Container>
-				<h1 className='text-3xl mb-14' data-aos='fade-up'>
+		<Container>
+			<div>
+				<h1 className='text-3xl mb-14' >
 					Учебный план
 				</h1>
-				<Input placeholder='Поиск по названию...' value={search} onChange={(e) => setSearch(e.target.value)} className='mb-6' data-aos='fade-up' />
+				<Input placeholder='Поиск по названию...' value={search} onChange={(e) => setSearch(e.target.value)} className='mb-6' />
 				{search ? (
 					<div className='grid lg:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-4'>
 						{filteredSubjects?.map((subject) => (
-							<Link key={subject.id} href={PUBLIC_URL.subjects(subject.slug)} data-aos='fade-up'>
+							<Link key={subject.id} href={PUBLIC_URL.subjects(subject.slug)}>
 								<article className='relative aspect-[16/9] rounded-2xl mb-2'>
 									<Image src={subject.image} alt={subject.title} fill className='object-cover mb-2 rounded-2xl' />
 								</article>
@@ -57,7 +56,7 @@ export function Plan() {
 						/>
 					))
 				)}
-			</Container>
-		</AOSComponent>
+			</div>
+		</Container>
 	)
 }

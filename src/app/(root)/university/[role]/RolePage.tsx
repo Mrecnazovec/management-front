@@ -26,24 +26,26 @@ export function RolePage({ role }: RolePageProps) {
 	return (
 		<AOSComponent>
 			<Container>
-				<h1 className='text-3xl mb-14' data-aos='fade-up'>
-					{roleTitles[role]}
-				</h1>
-				<Input placeholder='Поиск по имени...' value={search} onChange={(e) => setSearch(e.target.value)} className='mb-6' data-aos='fade-up' />
-				{search ? (
-					<div className='grid lg:grid-cols-6 sm:grid-cols-4 grid-cols-2 gap-4 mb-14'>
-						{filteredPersons?.map((person) => (
-							<Link key={person.slug} href={PUBLIC_URL.role(role, person?.slug)} data-aos='fade-up'>
-								<div className='relative overflow-hidden aspect-[3/4] rounded-2xl mb-2'>
-									<Image src={person?.photo || ''} fill alt='test' className='object-cover' />
-								</div>
-								<p>{person?.name}</p>
-							</Link>
-						))}
-					</div>
-				) : (
-					<PersonsBlock persons={persons} isLoading={isLoading} role={role} />
-				)}
+				<div data-aos='fade-up'>
+					<h1 className='text-3xl mb-14'>
+						{roleTitles[role]}
+					</h1>
+					<Input placeholder='Поиск по имени...' value={search} onChange={(e) => setSearch(e.target.value)} className='mb-6' />
+					{search ? (
+						<div className='grid lg:grid-cols-6 sm:grid-cols-4 grid-cols-2 gap-4 mb-14'>
+							{filteredPersons?.map((person) => (
+								<Link key={person.slug} href={PUBLIC_URL.role(role, person?.slug)}>
+									<div className='relative overflow-hidden aspect-[3/4] rounded-2xl mb-2'>
+										<Image src={person?.photo || ''} fill alt='test' className='object-cover' />
+									</div>
+									<p>{person?.name}</p>
+								</Link>
+							))}
+						</div>
+					) : (
+						<PersonsBlock persons={persons} isLoading={isLoading} role={role} />
+					)}
+				</div>
 			</Container>
 		</AOSComponent>
 	)
